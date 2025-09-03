@@ -17,6 +17,8 @@ chrome.runtime.onInstalled.addListener(({ reason, previousVersion }) => {
 
             // Video Length
             doFadeByLength: true, // Default: enable filter by video length
+            // Mode for video length filter: 'fade' (reduce opacity) or 'hide' (remove element)
+            videoLengthMode: 'fade',
             videoLengthMin: 0, // Default: minimum length 0 minutes
             videoLengthMax: 30, // Default: maximum length 30 minutes
 

@@ -17,8 +17,8 @@ const SELECTOR_SHORTS_SECTION = 'ytd-rich-shelf-renderer[is-shorts]';
  */
 
 chrome.storage.sync.get(
-    ['doHideShorts', 'doHideWatched', 'doFadeByLength', 'videoLengthMax', 'videoLengthMin'],
-    ({ doHideShorts, doHideWatched, doFadeByLength, videoLengthMax, videoLengthMin }) => {
+    ['doHideShorts', 'doHideWatched', 'doFadeByLength', 'videoLengthMax', 'videoLengthMin', 'videoLengthMode'],
+    ({ doHideShorts, doHideWatched, doFadeByLength, videoLengthMax, videoLengthMin, videoLengthMode = 'fade' }) => {
         /**
          * Filters videos
          */
@@ -49,39 +49,44 @@ chrome.storage.sync.get(
             }
         };
 
-        // Fade videos based on their length (if the option is enabled)
-        const fadeVideosByLength = () => {
-            if (doFadeByLength) {
-                // Select all video elements on the YouTube page
-                const videoElements = document.querySelectorAll(SELECTOR_VIDEO_ITEM);
+        // Apply video length filter (fade or hide) based on settings
+        const applyVideoLengthFilter = () => {
+            if (!doFadeByLength) return;
 
-                videoElements.forEach((video) => {
-                    // Find the element that contains the video duration
-                    const timeElement = video.querySelector(SELECTOR_VIDEO_DURATION);
+            // Select all video elements on the YouTube page
+            const videoElements = document.querySelectorAll(SELECTOR_VIDEO_ITEM);
 
-                    if (timeElement) {
-                        // Split the duration text into parts (e.g., "12:34" or "1:02:34")
-                        const timeParts = timeElement.textContent.trim().split(':').map(Number);
-                        let videoMinutes = 0;
+            videoElements.forEach((video) => {
+                // Find the element that contains the video duration
+                const timeElement = video.querySelector(SELECTOR_VIDEO_DURATION);
 
-                        // Calculate the video length in minutes
-                        if (timeParts.length === 2) {
-                            // Format MM:SS
-                            videoMinutes = timeParts[0] + timeParts[1] / 60;
-                        } else if (timeParts.length === 3) {
-                            // Format HH:MM:SS
-                            videoMinutes = timeParts[0] * 60 + timeParts[1] + timeParts[2] / 60;
-                        }
+                if (!timeElement) return;
 
-                        // Set the opacity of the video thumbnail based on the video length
-                        if (videoMinutes < videoLengthMin || videoMinutes > videoLengthMax) {
-                            video.style.opacity = '0.2'; // Reduce opacity if video is outside the filter range
-                        } else {
-                            video.style.opacity = '1'; // Set normal opacity otherwise
-                        }
-                    }
-                });
-            }
+                // Split the duration text into parts (e.g., "12:34" or "1:02:34")
+                const timeParts = timeElement.textContent.trim().split(':').map(Number);
+                let videoMinutes = 0;
+
+                // Calculate the video length in minutes
+                if (timeParts.length === 2) {
+                    // Format MM:SS
+                    videoMinutes = timeParts[0] + timeParts[1] / 60;
+                } else if (timeParts.length === 3) {
+                    // Format HH:MM:SS
+                    videoMinutes = timeParts[0] * 60 + timeParts[1] + timeParts[2] / 60;
+                }
+
+                const outOfRange = videoMinutes < videoLengthMin || videoMinutes > videoLengthMax;
+
+                if (videoLengthMode === 'hide') {
+                    // Hide elements outside the range, show otherwise
+                    video.style.display = outOfRange ? 'none' : '';
+                    video.style.opacity = '1';
+                } else {
+                    // Default to fade behavior
+                    video.style.display = '';
+                    video.style.opacity = outOfRange ? '0.2' : '1';
+                }
+            });
         };
 
         /**
@@ -91,13 +96,13 @@ chrome.storage.sync.get(
         // Initial run of the filters
         hideWatchedVideos();
         hideShortsSections();
-        fadeVideosByLength();
+        applyVideoLengthFilter();
 
         // Re-apply the filter every x seconds to handle dynamic content loading on YouTube
         setInterval(() => {
             hideWatchedVideos();
             hideShortsSections();
-            fadeVideosByLength();
+            applyVideoLengthFilter();
         }, 3000);
     }
 );
