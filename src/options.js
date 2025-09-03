@@ -179,6 +179,15 @@ document.getElementById('sptid-do-fade-by-length').addEventListener('click', () 
     }
 );
 
+// Video length mode (fade or hide)
+document.getElementById('sptid-video-length-mode').addEventListener('change', () => {
+    const mode = document.getElementById('sptid-video-length-mode').value;
+
+    chrome.storage.sync.set({ videoLengthMode: mode }, () => {
+        renderAlertMessage(`Video length mode set to "${mode}" successfully!`);
+    });
+});
+
 // Categorize subscriptions
 document.getElementById('sptid-do-categorize-subscription').addEventListener('click', () => {
     const categorizeSubscription = document.getElementById('sptid-do-categorize-subscription').checked;
@@ -233,6 +242,7 @@ document.getElementById('sptid-settings-reset').addEventListener('click', () => 
             doHideWatched: false,
             // Video Length
             doFadeByLength: true,
+            videoLengthMode: 'fade',
             videoLengthMin: 0,
             videoLengthMax: 30,
             // Subscriptions Categories
@@ -258,8 +268,17 @@ document.addEventListener('DOMContentLoaded', () => {
             'videoLengthMax',
             'videoLengthMin',
             'doCategorizeSubscription',
+            'videoLengthMode',
         ],
-        ({ doHideShorts, doHideWatched, doFadeByLength, videoLengthMax, videoLengthMin, doCategorizeSubscription }) => {
+        ({
+            doHideShorts,
+            doHideWatched,
+            doFadeByLength,
+            videoLengthMax,
+            videoLengthMin,
+            doCategorizeSubscription,
+            videoLengthMode,
+        }) => {
             document.getElementById('sptid-do-hide-watched').checked = doHideWatched;
             document.getElementById('sptid-do-hide-shorts').checked = doHideShorts;
 
@@ -268,6 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('sptid-video-length-max').value = videoLengthMax;
 
             document.getElementById('sptid-do-categorize-subscription').checked = doCategorizeSubscription;
+            document.getElementById('sptid-video-length-mode').value = videoLengthMode || 'fade';
         }
     );
 
