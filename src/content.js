@@ -4,6 +4,15 @@
  */
 
 /**
+ * Constants
+ */
+
+const SELECTOR_VIDEO_ITEM = 'ytd-rich-item-renderer';
+const SELECTOR_WATCHED_PROGRESS = 'yt-thumbnail-overlay-progress-bar-view-model';
+const SELECTOR_VIDEO_DURATION = 'yt-thumbnail-badge-view-model badge-shape div';
+const SELECTOR_SHORTS_SECTION = 'ytd-rich-shelf-renderer[is-shorts]';
+
+/**
  * Main
  */
 
@@ -17,10 +26,10 @@ chrome.storage.sync.get(
         // Hide watched videos (if the option is enabled)
         const hideWatchedVideos = () => {
             if (doHideWatched) {
-                const videoElements = document.querySelectorAll('ytd-rich-item-renderer');
+                const videoElements = document.querySelectorAll(SELECTOR_VIDEO_ITEM);
 
                 videoElements.forEach((video) => {
-                    const progressBar = video.querySelector('ytd-thumbnail-overlay-resume-playback-renderer');
+                    const progressBar = video.querySelector(SELECTOR_WATCHED_PROGRESS);
 
                     if (progressBar) {
                         video.style.display = 'none';
@@ -32,7 +41,7 @@ chrome.storage.sync.get(
         // Hide shorts sections (if the option is enabled)
         const hideShortsSections = () => {
             if (doHideShorts) {
-                const shortsSections = document.querySelectorAll('ytd-rich-shelf-renderer[is-shorts]');
+                const shortsSections = document.querySelectorAll(SELECTOR_SHORTS_SECTION);
 
                 shortsSections.forEach((shorts) => {
                     shorts.style.display = 'none';
@@ -44,11 +53,11 @@ chrome.storage.sync.get(
         const fadeVideosByLength = () => {
             if (doFadeByLength) {
                 // Select all video elements on the YouTube page
-                const videoElements = document.querySelectorAll('ytd-rich-item-renderer');
+                const videoElements = document.querySelectorAll(SELECTOR_VIDEO_ITEM);
 
                 videoElements.forEach((video) => {
                     // Find the element that contains the video duration
-                    const timeElement = video.querySelector('ytd-thumbnail-overlay-time-status-renderer span');
+                    const timeElement = video.querySelector(SELECTOR_VIDEO_DURATION);
 
                     if (timeElement) {
                         // Split the duration text into parts (e.g., "12:34" or "1:02:34")
