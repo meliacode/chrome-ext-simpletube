@@ -25,6 +25,12 @@
     background-color: var(--yt-spec-button-chip-background-hover);
 }
 
+.sptcl-category-select option,
+.sptcl-category-select option:hover {
+    background-color: var(--yt-spec-additive-background);
+    color: var(--yt-spec-inverted-background);
+}
+
 /* Category Filter Buttons */
 
 .sptcl-channel-filter-container,
