@@ -105,21 +105,20 @@ function applyFilterToContent(contentList, selectedCategoryId, channelCategoryAs
     contentList.forEach((block) => {
         const channelName = getChannelName(block, forChannelPage);
 
-        // If the category is "Not Assigned"
+        let shouldShow = false;
+
         if (selectedCategoryId === CATEGORY_NOT_ASSIGNED) {
             // Show the content only if the channel is not assigned to any category
-            if (!channelCategoryAssignTable[channelName]) {
-                block.style.display = '';
-            } else {
-                block.style.display = 'none';
-            }
+            shouldShow = !channelCategoryAssignTable[channelName];
         } else {
-            // If the category is assigned to the channel, show the content
-            if (channelCategoryAssignTable[channelName] === selectedCategoryId) {
-                block.style.display = '';
-            } else {
-                block.style.display = 'none';
-            }
+            // Show the content when the channel is assigned to the selected category
+            shouldShow = channelCategoryAssignTable[channelName] === selectedCategoryId;
+        }
+
+        if (shouldShow) {
+            block.classList.remove('spt-hide-filtered');
+        } else {
+            block.classList.add('spt-hide-filtered');
         }
     });
 }
@@ -127,7 +126,7 @@ function applyFilterToContent(contentList, selectedCategoryId, channelCategoryAs
 // Apply the default "All" filter to the content
 function applyDefaultFilter(contentList) {
     contentList.forEach((block) => {
-        block.style.display = '';
+        block.classList.remove('spt-hide-filtered');
     });
 }
 
