@@ -93,16 +93,30 @@ chrome.storage.sync.get(
          * Run
          */
 
-        // Initial run of the filters
-        hideWatchedVideos();
-        hideShortsSections();
-        applyVideoLengthFilter();
-
-        // Re-apply the filter every x seconds to handle dynamic content loading on YouTube
-        setInterval(() => {
+        const runOnce = () => {
             hideWatchedVideos();
             hideShortsSections();
             applyVideoLengthFilter();
-        }, 3000);
+        };
+
+        // Run once at startup
+        runOnce();
+
+        // Debounce helper
+        const debounce = (fn, wait = 300) => {
+            let t = null;
+            return (...args) => {
+                if (t) clearTimeout(t);
+                t = setTimeout(() => fn(...args), wait);
+            };
+        };
+
+        // Observe the document body and run the appropriate renderers when the DOM changes
+        const onMutations = debounce(() => {
+            runOnce();
+        }, 350);
+
+        const observer = new MutationObserver(onMutations);
+        observer.observe(document.body, { childList: true, subtree: true });
     }
 );
