@@ -64,7 +64,6 @@ If you want to modify or contribute to this extension:
     ```
 
 2. Load the extension in Chrome:
-
     - Open Chrome and navigate to `chrome://extensions/`.
     - Enable **Developer mode** in the top right corner.
     - Click **Load unpacked** and select the `chrome-ext-simpletube/src` folder.
@@ -72,7 +71,6 @@ If you want to modify or contribute to this extension:
 3. Make changes to the appropriate files (`manifest.json`, `background.js`, `options.html`, `options.js`, `content.js`, `contentCategorize.js`).
 4. Reload the extension on the Chrome Extensions page to apply the changes.
 5. (Re)configure the extension _(on reload, some settings are reinitialized)_:
-
     - Click on the extension icon in the Chrome toolbar.
     - Select **Options** to open the settings page.
     - Configure your preferences for video length, Shorts, watched videos, and subscription categories.
