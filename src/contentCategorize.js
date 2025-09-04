@@ -44,9 +44,9 @@ const warnMissingSelector = (selector, context) => {
     warningCounter++;
 
     if (!context) {
-        console.warn(`Selector "${selector}" not found.`);
+        console.log(`[SimpleTube] Selector "${selector}" not found.`);
     } else {
-        console.warn(`Selector "${selector}" not found.`, context);
+        console.log(`[SimpleTube] Selector "${selector}" not found.`, JSON.stringify(context));
     }
 };
 
@@ -132,11 +132,6 @@ function applyDefaultFilter(contentList) {
 
 // Observe changes in the subscriptions page and reapply filters
 function observeSubscriptionsPage(subscriptionsPageContainer, channelCategoryAssignTable) {
-    if (!subscriptionsPageContainer) {
-        warnMissingSelector(YTB_SELECTOR_SUBSCRIPTION_PAGE, subscriptionsPageContainer);
-        return;
-    }
-
     const observer = new MutationObserver(() => {
         const activeFilterButton = subscriptionsPageContainer.querySelector(
             `${SELECTOR_FILTER_BUTTON}[data-active="true"]`
@@ -186,7 +181,7 @@ chrome.storage.sync.get(
 
             // If the page doesn't have any channel, skip (warn as requested)
             if (!channelBlocks.length) {
-                warnMissingSelector(YTB_SELECTOR_CHANNEL_RENDERER, document);
+                warnMissingSelector(YTB_SELECTOR_CHANNEL_RENDERER);
                 return;
             }
 
@@ -260,7 +255,7 @@ chrome.storage.sync.get(
             const channelPageContainer = document.querySelector(YTB_SELECTOR_CHANNEL_PAGE);
 
             if (!channelPageContainer) {
-                warnMissingSelector(YTB_SELECTOR_CHANNEL_PAGE, document);
+                warnMissingSelector(YTB_SELECTOR_CHANNEL_PAGE);
                 return;
             }
 
@@ -316,7 +311,7 @@ chrome.storage.sync.get(
             const subscriptionsPageContainer = document.querySelector(YTB_SELECTOR_SUBSCRIPTION_PAGE);
 
             if (!subscriptionsPageContainer) {
-                warnMissingSelector(YTB_SELECTOR_SUBSCRIPTION_PAGE, document);
+                warnMissingSelector(YTB_SELECTOR_SUBSCRIPTION_PAGE);
                 return;
             }
 
