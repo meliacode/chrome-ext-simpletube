@@ -32,7 +32,12 @@ Once installed and configured, the extension automatically applies your selected
 - Watched videos can be hidden entirely.
 - The "Shorts" section can be hidden for a more focused YouTube experience.
 - Filter your subscriptions page by categories for easier content discovery.
-    - Assign categories to your channels subscriptions on the channel page and filter based on these assignments for better management.
+    - Assign categories to your channels subscriptions on the channel page and based on these assignments for better management.
+
+Implementation details (performance):
+
+- Visual changes are applied via CSS classes so scripts avoid frequent inline style writes.
+- Content scripts use a debounced MutationObserver instead of tight polling, which lowers CPU usage and reduces UI jank when YouTube dynamically injects content.
 
 ## Directory Structure
 

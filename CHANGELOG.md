@@ -2,12 +2,16 @@
 
 ## Unreleased
 
-- Publish extension to Chrome store.
-- Remove subscription from category on unsubscribe click.
-- Add filter on management subscription page.
-- Enhance performance by optimizing the way dynamic content is managed on YouTube.
+- **feat**: Remove subscription from category on unsubscribe click.
+- **feat**: Set category for followed channel on channel page and on videos.
 
 ## Versions
+
+v0.8.0:
+
+- **feat**: options/content - let user choose between fade or hide for videos length filter.
+- **performance**: replace interval polling with a debounced mutationobserver for content scripts to reduce cpu usage and layout thrashing.
+- **performance**: move visual changes to css classes and stop writing display/opacity inline styles from scripts.
 
 v0.7.1:
 
