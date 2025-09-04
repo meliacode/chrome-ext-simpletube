@@ -4,6 +4,10 @@
 - Make your changes and test them.
 - Submit a pull request with a clear description following the pull request template.
 
+## Install
+
+- run `npm install`
+
 ## Code Style
 
 - Follow the ESLint/Prettier guidelines
