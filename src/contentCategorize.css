@@ -56,3 +56,12 @@
     background-color: var(--yt-spec-static-brand-red);
     color: var(--yt-spec-base-background);
 }
+
+/* Styles to reduce layout thrashing */
+
+.spt-hide-filtered {
+    display: none !important;
+}
+.spt-hide-filtered * {
+    visibility: hidden !important;
+}
