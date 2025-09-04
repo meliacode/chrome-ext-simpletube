@@ -25,28 +25,30 @@ chrome.storage.sync.get(
 
         // Hide watched videos (if the option is enabled)
         const hideWatchedVideos = () => {
-            if (doHideWatched) {
-                const videoElements = document.querySelectorAll(SELECTOR_VIDEO_ITEM);
+            const videoElements = document.querySelectorAll(SELECTOR_VIDEO_ITEM);
 
-                videoElements.forEach((video) => {
-                    const progressBar = video.querySelector(SELECTOR_WATCHED_PROGRESS);
+            videoElements.forEach((video) => {
+                const progressBar = video.querySelector(SELECTOR_WATCHED_PROGRESS);
 
-                    if (progressBar) {
-                        video.style.display = 'none';
-                    }
-                });
-            }
+                if (doHideWatched && progressBar) {
+                    video.classList.add('spt-hide-watched');
+                } else {
+                    video.classList.remove('spt-hide-watched');
+                }
+            });
         };
 
         // Hide shorts sections (if the option is enabled)
         const hideShortsSections = () => {
-            if (doHideShorts) {
-                const shortsSections = document.querySelectorAll(SELECTOR_SHORTS_SECTION);
+            const shortsSections = document.querySelectorAll(SELECTOR_SHORTS_SECTION);
 
-                shortsSections.forEach((shorts) => {
-                    shorts.style.display = 'none';
-                });
-            }
+            shortsSections.forEach((shorts) => {
+                if (doHideShorts) {
+                    shorts.classList.add('spt-hide-shorts');
+                } else {
+                    shorts.classList.remove('spt-hide-shorts');
+                }
+            });
         };
 
         // Apply video length filter (fade or hide) based on settings
@@ -77,14 +79,25 @@ chrome.storage.sync.get(
 
                 const outOfRange = videoMinutes < videoLengthMin || videoMinutes > videoLengthMax;
 
+                // Logic to either hide or fade the video based on the mode
                 if (videoLengthMode === 'hide') {
                     // Hide elements outside the range, show otherwise
-                    video.style.display = outOfRange ? 'none' : '';
-                    video.style.opacity = '1';
+                    if (outOfRange) {
+                        video.classList.add('spt-hide-length');
+                    } else {
+                        video.classList.remove('spt-hide-length');
+                    }
+
+                    video.classList.remove('spt-fade-length');
                 } else {
                     // Default to fade behavior
-                    video.style.display = '';
-                    video.style.opacity = outOfRange ? '0.2' : '1';
+                    if (outOfRange) {
+                        video.classList.add('spt-fade-length');
+                    } else {
+                        video.classList.remove('spt-fade-length');
+                    }
+
+                    video.classList.remove('spt-hide-length');
                 }
             });
         };

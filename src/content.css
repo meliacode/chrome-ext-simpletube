@@ -1,0 +1,25 @@
+/* Styles to reduce layout thrashing */
+
+.spt-fade-length {
+    opacity: 0.25 !important;
+    transition: opacity 160ms ease;
+}
+
+.spt-hide-length {
+    display: none !important;
+}
+
+.spt-hide-shorts {
+    display: none !important;
+}
+
+.spt-hide-watched {
+    display: none !important;
+}
+
+/* Priority helpers in case YouTube uses inline styles */
+.spt-hide-length *,
+.spt-hide-shorts *,
+.spt-hide-watched * {
+    visibility: hidden !important;
+}
