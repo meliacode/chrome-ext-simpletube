@@ -17,9 +17,14 @@
     display: none !important;
 }
 
+.spt-hide-expandable {
+    display: none !important;
+}
+
 /* Priority helpers in case YouTube uses inline styles */
 .spt-hide-length *,
 .spt-hide-shorts *,
+.spt-hide-expandable *,
 .spt-hide-watched * {
     visibility: hidden !important;
 }

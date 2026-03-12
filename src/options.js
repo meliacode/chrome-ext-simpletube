@@ -145,6 +145,14 @@ document.getElementById('sptid-do-hide-watched').addEventListener('click', () =>
     });
 });
 
+document.getElementById('sptid-do-hide-subscriptions-expandable-sections').addEventListener('click', () => {
+    const hideExpandableSections = document.getElementById('sptid-do-hide-subscriptions-expandable-sections').checked;
+
+    chrome.storage.sync.set({ doHideExpandableSections: hideExpandableSections }, () => {
+        renderAlertMessage(`Expandable sections ${hideExpandableSections ? 'hidden' : 'shown'} successfully!`);
+    });
+});
+
 // Fade by length
 document.getElementById('sptid-do-fade-by-length').addEventListener('click', () => {
     const fadeByLength = document.getElementById('sptid-do-fade-by-length').checked;
@@ -227,6 +235,7 @@ document.getElementById('sptid-settings-reset').addEventListener('click', () => 
     // Reset the settings to the default values
     document.getElementById('sptid-do-hide-watched').checked = false;
     document.getElementById('sptid-do-hide-shorts').checked = false;
+    document.getElementById('sptid-do-hide-subscriptions-expandable-sections').checked = false;
 
     document.getElementById('sptid-do-fade-by-length').checked = true;
     document.getElementById('sptid-video-length-min').value = 0;
@@ -240,6 +249,7 @@ document.getElementById('sptid-settings-reset').addEventListener('click', () => 
             // General Options
             doHideShorts: false,
             doHideWatched: false,
+            doHideExpandableSections: false,
             // Video Length
             doFadeByLength: true,
             videoLengthMode: 'fade',
@@ -264,6 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
         [
             'doHideShorts',
             'doHideWatched',
+            'doHideExpandableSections',
             'doFadeByLength',
             'videoLengthMax',
             'videoLengthMin',
@@ -273,6 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ({
             doHideShorts,
             doHideWatched,
+            doHideExpandableSections,
             doFadeByLength,
             videoLengthMax,
             videoLengthMin,
@@ -281,6 +293,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }) => {
             document.getElementById('sptid-do-hide-watched').checked = doHideWatched;
             document.getElementById('sptid-do-hide-shorts').checked = doHideShorts;
+            document.getElementById('sptid-do-hide-subscriptions-expandable-sections').checked =
+                doHideExpandableSections;
 
             document.getElementById('sptid-do-fade-by-length').checked = doFadeByLength;
             document.getElementById('sptid-video-length-min').value = videoLengthMin;

@@ -11,14 +11,31 @@ const SELECTOR_VIDEO_ITEM = 'ytd-rich-item-renderer';
 const SELECTOR_WATCHED_PROGRESS = 'yt-thumbnail-overlay-progress-bar-view-model';
 const SELECTOR_VIDEO_DURATION = 'yt-thumbnail-badge-view-model badge-shape div';
 const SELECTOR_SHORTS_SECTION = 'ytd-rich-shelf-renderer[is-shorts]';
+const SELECTOR_EXPANDABLE_SECTION = 'ytd-rich-shelf-renderer[has-expansion-button]';
 
 /**
  * Main
  */
 
 chrome.storage.sync.get(
-    ['doHideShorts', 'doHideWatched', 'doFadeByLength', 'videoLengthMax', 'videoLengthMin', 'videoLengthMode'],
-    ({ doHideShorts, doHideWatched, doFadeByLength, videoLengthMax, videoLengthMin, videoLengthMode = 'fade' }) => {
+    [
+        'doHideShorts',
+        'doHideWatched',
+        'doHideExpandableSections',
+        'doFadeByLength',
+        'videoLengthMax',
+        'videoLengthMin',
+        'videoLengthMode',
+    ],
+    ({
+        doHideShorts,
+        doHideWatched,
+        doHideExpandableSections,
+        doFadeByLength,
+        videoLengthMax,
+        videoLengthMin,
+        videoLengthMode = 'fade',
+    }) => {
         /**
          * Filters videos
          */
@@ -47,6 +64,19 @@ chrome.storage.sync.get(
                     shorts.classList.add('spt-hide-shorts');
                 } else {
                     shorts.classList.remove('spt-hide-shorts');
+                }
+            });
+        };
+
+        // Hide expandable sections on subscriptions page (if the option is enabled)
+        const hideExpandableSections = () => {
+            const expandableSections = document.querySelectorAll(SELECTOR_EXPANDABLE_SECTION);
+
+            expandableSections.forEach((section) => {
+                if (doHideExpandableSections) {
+                    section.classList.add('spt-hide-expandable');
+                } else {
+                    section.classList.remove('spt-hide-expandable');
                 }
             });
         };
@@ -109,6 +139,7 @@ chrome.storage.sync.get(
         const runOnce = () => {
             hideWatchedVideos();
             hideShortsSections();
+            hideExpandableSections();
             applyVideoLengthFilter();
         };
 

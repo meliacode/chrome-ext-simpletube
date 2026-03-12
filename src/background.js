@@ -14,6 +14,7 @@ chrome.runtime.onInstalled.addListener(({ reason, previousVersion }) => {
             // General Options
             doHideShorts: false, // Default: do not hide shorts section
             doHideWatched: false, // Default: do not fade watched videos
+            doHideExpandableSections: false, // Default: do not hide expandable sections in subscriptions page
 
             // Video Length
             doFadeByLength: true, // Default: enable filter by video length
