@@ -130,6 +130,13 @@ function applyDefaultFilter(contentList) {
     });
 }
 
+// Get assigned categories (only categories with at least one channel assigned)
+function getAssignedCategories(categories, channelCategoryAssignTable) {
+    return categories.filter((category) => {
+        return Object.values(channelCategoryAssignTable).includes(category.id);
+    });
+}
+
 // Observe changes in the subscriptions page and reapply filters
 function observeSubscriptionsPage(subscriptionsPageContainer, channelCategoryAssignTable) {
     const observer = new MutationObserver(() => {
@@ -322,7 +329,11 @@ chrome.storage.sync.get(
                 filterContainer.classList.add(CLASS_FILTER_CONTAINER_SUBSCRIPTION);
 
                 // Create filter buttons
-                renderButtonsFilters(filterContainer, [{ id: CATEGORY_ALL, name: CATEGORY_ALL }, ...categories]);
+                const assignedCategories = getAssignedCategories(categories, channelCategoryAssigned);
+                renderButtonsFilters(filterContainer, [
+                    { id: CATEGORY_ALL, name: CATEGORY_ALL },
+                    ...assignedCategories,
+                ]);
 
                 // Append the filters to the primary container
                 subscriptionsPageContainer.prepend(filterContainer);
