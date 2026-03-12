@@ -7,9 +7,11 @@ This Chrome extension allows users to filter YouTube content by video length, ma
 - **Hide Shorts Section**: Remove the "Shorts" section from YouTube to declutter your homepage.
 - **Hide Watched Videos**: Hide videos that you have already watched, helping you focus on new content.
 - **Video Length Filter**: Adjust the visibility of videos based on their length. You can specify a minimum and maximum duration, and videos that fall outside this range will have their opacity reduced.
+- **Hide Expanded Sections on Subscriptions**: Hide expanded recommendation sections on the subscriptions page to reduce distractions and focus on your subscribed channels.
 - **Subscription Categories**: Organize your channel subscriptions into categories and filter videos on your subscriptions page based on these categories. Filtering persists even when new content is dynamically loaded by YouTube, but not on page reload.
-    - **Channel Page Dropdown for Category Assignment**: Assign categories to each subscribed channel directly on the channel management page.
+    - **Channel Page Dropdown for Category Assignment**: Assign categories to each subscribed channel directly on the channel management page with improved styling for better contrast and YouTube-like appearance.
     - **Category Filters on Subscriptions and Channel Pages**: Easily filter your subscription videos or channels by category, including categories like "All" or "Not Assigned".
+    - **Smart Category Filtering**: Only categories with at least one assigned channel are displayed on the subscriptions page, keeping the UI clean and focused.
     - **Persistent Filters on Dynamic Content**: The filter applied on the subscription page remains active as new videos are loaded dynamically by YouTube, providing a seamless browsing experience.
 
 ## Installation
@@ -31,8 +33,10 @@ Once installed and configured, the extension automatically applies your selected
 - Videos outside the specified length range will have reduced opacity.
 - Watched videos can be hidden entirely.
 - The "Shorts" section can be hidden for a more focused YouTube experience.
+- Expanded recommendation sections on the subscriptions page can be hidden to reduce distractions.
 - Filter your subscriptions page by categories for easier content discovery.
-    - Assign categories to your channels subscriptions on the channel page and based on these assignments for better management.
+    - Assign categories to your channels subscriptions on the channel page and filter based on these assignments for better management.
+    - Only categories with at least one assigned channel will appear in the subscription page filters.
 
 Implementation details (performance):
 

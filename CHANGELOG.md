@@ -1,11 +1,12 @@
 # Changelog
 
-## Unreleased
-
-- **feat**: Remove subscription from category on unsubscribe click.
-- **feat**: Set category for followed channel on channel page and on videos.
-
 ## Versions
+
+v0.9.0:
+
+- **feat**: Hide expanded recommendation sections on subscriptions page (sections with id="dismissible").
+- **feat**: Smart category filtering - only show categories with at least one assigned channel on subscriptions page.
+- **fix**: Improve category dropdown styling for better contrast on Windows with YouTube-like appearance (use primary text and badge chip background variables with proper fallbacks).
 
 v0.8.0:
 

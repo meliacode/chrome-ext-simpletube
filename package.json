@@ -1,6 +1,8 @@
 {
   "type": "module",
+  "version": "0.9.0",
   "scripts": {
+    "package": "VERSION=$(node -p \"require('./src/manifest.json').version\") && cd src && zip -r ../simpletube-v${VERSION}.zip . --exclude '*.crx' --exclude '.DS_Store'",
     "lint": "npm run lint:script && npm run lint:format",
     "lint:fix": "npm run lint:script:fix && npm run lint:format:fix",
     "lint:script": "eslint .",
