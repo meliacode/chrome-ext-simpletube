@@ -103,6 +103,64 @@
 
             <!-- OPTIONS: Subscription Categories Manager -->
             <div class="sptcl-opt-content-section">
+                <h2>Video Views Filter</h2>
+                <p class="sptcl-opt-description">
+                    Apply filters based on the number of views. Videos outside the range can be faded or hidden.
+                </p>
+
+                <label for="sptid-do-filter-by-views" class="sptcl-form-option-label">
+                    <input type="checkbox" id="sptid-do-filter-by-views" />
+                    Enable filter by number of views
+                    <span class="sptcl-opt-default-info">(Default: false)</span>
+                </label>
+
+                <br />
+
+                <label for="sptid-video-views-min" class="sptcl-form-option-label">
+                    Select minimum number of views:
+                    <span class="sptcl-opt-default-info">(Default: 0)</span>
+                </label>
+                <select id="sptid-video-views-min" class="sptcl-form-select-input">
+                    <option value="0">0</option>
+                    <option value="100">100</option>
+                    <option value="500">500</option>
+                    <option value="1000">1K</option>
+                    <option value="10000">10K</option>
+                    <option value="50000">50K</option>
+                    <option value="100000">100K</option>
+                    <option value="500000">500K</option>
+                    <option value="1000000">1M</option>
+                    <option value="5000000">5M</option>
+                </select>
+
+                <label for="sptid-video-views-max" class="sptcl-form-option-label">
+                    Select maximum number of views:
+                    <span class="sptcl-opt-default-info">(Default: 1M)</span>
+                </label>
+                <select id="sptid-video-views-max" class="sptcl-form-select-input">
+                    <option value="100">100</option>
+                    <option value="500">500</option>
+                    <option value="1000">1K</option>
+                    <option value="10000">10K</option>
+                    <option value="50000">50K</option>
+                    <option value="100000">100K</option>
+                    <option value="500000">500K</option>
+                    <option value="1000000" selected>1M</option>
+                    <option value="5000000">5M</option>
+                </select>
+
+                <label for="sptid-video-views-mode" class="sptcl-form-option-label">
+                    Action for videos outside the range:
+                    <span class="sptcl-opt-default-info">(Default: Fade)</span>
+                </label>
+                <select id="sptid-video-views-mode" class="sptcl-form-select-input">
+                    <option value="fade">Fade (reduce opacity)</option>
+                    <option value="hide">Hide (remove from view)</option>
+                </select>
+            </div>
+
+            <!-- OPTIONS: Subscription Categories Manager -->
+            <div class="sptcl-opt-content-section">
                 <h2>Subscription Categories Filter</h2>
                 <p class="sptcl-opt-description">
                     Each category will appear at the top of your

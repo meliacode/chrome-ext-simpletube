@@ -9,6 +9,15 @@
     display: none !important;
 }
 
+.spt-fade-views {
+    opacity: 0.25 !important;
+    transition: opacity 160ms ease;
+}
+
+.spt-hide-views {
+    display: none !important;
+}
+
 .spt-hide-shorts {
     display: none !important;
 }
@@ -23,6 +32,7 @@
 
 /* Priority helpers in case YouTube uses inline styles */
 .spt-hide-length *,
+.spt-hide-views *,
 .spt-hide-shorts *,
 .spt-hide-expandable *,
 .spt-hide-watched * {

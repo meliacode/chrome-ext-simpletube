@@ -23,6 +23,13 @@ chrome.runtime.onInstalled.addListener(({ reason, previousVersion }) => {
             videoLengthMin: 0, // Default: minimum length 0 minutes
             videoLengthMax: 30, // Default: maximum length 30 minutes
 
+            // Video Views
+            doFilterByViews: false, // Default: disable filter by views count
+            // Mode for video views filter: 'fade' (reduce opacity) or 'hide' (remove element)
+            videoViewsMode: 'fade',
+            videoViewsMin: 0, // Default: minimum views 0
+            videoViewsMax: 1000000, // Default: maximum views 1 Million
+
             // Subscriptions Categories
             doCategorizeSubscription: true, // Default: enable categorize subscriptions
             categories: [], // Default: set default categories

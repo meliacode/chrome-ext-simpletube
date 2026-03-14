@@ -165,8 +165,8 @@ document.getElementById('sptid-do-fade-by-length').addEventListener('click', () 
 [document.getElementById('sptid-video-length-min'), document.getElementById('sptid-video-length-max')].forEach(
     (element) => {
         element.addEventListener('change', () => {
-            const videoLengthMin = parseInt(document.getElementById('sptid-video-length-min').value, 10);
-            const videoLengthMax = parseInt(document.getElementById('sptid-video-length-max').value, 10);
+            const videoLengthMin = Number.parseInt(document.getElementById('sptid-video-length-min').value, 10);
+            const videoLengthMax = Number.parseInt(document.getElementById('sptid-video-length-max').value, 10);
 
             if (videoLengthMin >= videoLengthMax) {
                 renderAlertMessage('Minimum should be less than maximum!', true);
@@ -193,6 +193,48 @@ document.getElementById('sptid-video-length-mode').addEventListener('change', ()
 
     chrome.storage.sync.set({ videoLengthMode: mode }, () => {
         renderAlertMessage(`Video length mode set to "${mode}" successfully!`);
+    });
+});
+
+// Filter by views
+document.getElementById('sptid-do-filter-by-views').addEventListener('click', () => {
+    const filterByViews = document.getElementById('sptid-do-filter-by-views').checked;
+
+    chrome.storage.sync.set({ doFilterByViews: filterByViews }, () => {
+        renderAlertMessage(`Filter by views ${filterByViews ? 'enabled' : 'disabled'} successfully!`);
+    });
+});
+
+[document.getElementById('sptid-video-views-min'), document.getElementById('sptid-video-views-max')].forEach(
+    (element) => {
+        element.addEventListener('change', () => {
+            const videoViewsMin = Number.parseInt(document.getElementById('sptid-video-views-min').value, 10);
+            const videoViewsMax = Number.parseInt(document.getElementById('sptid-video-views-max').value, 10);
+
+            if (videoViewsMin >= videoViewsMax) {
+                renderAlertMessage('Minimum views should be less than maximum views!', true);
+                return;
+            }
+
+            chrome.storage.sync.set(
+                {
+                    videoViewsMax: videoViewsMax,
+                    videoViewsMin: videoViewsMin,
+                },
+                () => {
+                    renderAlertMessage('Video views settings updated successfully!');
+                }
+            );
+        });
+    }
+);
+
+// Video views mode (fade or hide)
+document.getElementById('sptid-video-views-mode').addEventListener('change', () => {
+    const mode = document.getElementById('sptid-video-views-mode').value;
+
+    chrome.storage.sync.set({ videoViewsMode: mode }, () => {
+        renderAlertMessage(`Video views mode set to "${mode}" successfully!`);
     });
 });
 
@@ -240,6 +282,12 @@ document.getElementById('sptid-settings-reset').addEventListener('click', () => 
     document.getElementById('sptid-do-fade-by-length').checked = true;
     document.getElementById('sptid-video-length-min').value = 0;
     document.getElementById('sptid-video-length-max').value = 30;
+    document.getElementById('sptid-video-length-mode').value = 'fade';
+
+    document.getElementById('sptid-do-filter-by-views').checked = false;
+    document.getElementById('sptid-video-views-min').value = 0;
+    document.getElementById('sptid-video-views-max').value = 1000000;
+    document.getElementById('sptid-video-views-mode').value = 'fade';
 
     document.getElementById('sptid-do-categorize-subscription').checked = true;
 
@@ -255,6 +303,11 @@ document.getElementById('sptid-settings-reset').addEventListener('click', () => 
             videoLengthMode: 'fade',
             videoLengthMin: 0,
             videoLengthMax: 30,
+            // Video Views
+            doFilterByViews: false,
+            videoViewsMode: 'fade',
+            videoViewsMin: 0,
+            videoViewsMax: 1000000,
             // Subscriptions Categories
             doCategorizeSubscription: true,
         },
@@ -280,6 +333,10 @@ document.addEventListener('DOMContentLoaded', () => {
             'videoLengthMin',
             'doCategorizeSubscription',
             'videoLengthMode',
+            'doFilterByViews',
+            'videoViewsMin',
+            'videoViewsMax',
+            'videoViewsMode',
         ],
         ({
             doHideShorts,
@@ -290,6 +347,10 @@ document.addEventListener('DOMContentLoaded', () => {
             videoLengthMin,
             doCategorizeSubscription,
             videoLengthMode,
+            doFilterByViews,
+            videoViewsMin,
+            videoViewsMax,
+            videoViewsMode,
         }) => {
             document.getElementById('sptid-do-hide-watched').checked = doHideWatched;
             document.getElementById('sptid-do-hide-shorts').checked = doHideShorts;
@@ -299,9 +360,14 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('sptid-do-fade-by-length').checked = doFadeByLength;
             document.getElementById('sptid-video-length-min').value = videoLengthMin;
             document.getElementById('sptid-video-length-max').value = videoLengthMax;
+            document.getElementById('sptid-video-length-mode').value = videoLengthMode || 'fade';
+
+            document.getElementById('sptid-do-filter-by-views').checked = doFilterByViews || false;
+            document.getElementById('sptid-video-views-min').value = videoViewsMin ?? 0;
+            document.getElementById('sptid-video-views-max').value = videoViewsMax ?? 1000000;
+            document.getElementById('sptid-video-views-mode').value = videoViewsMode || 'fade';
 
             document.getElementById('sptid-do-categorize-subscription').checked = doCategorizeSubscription;
-            document.getElementById('sptid-video-length-mode').value = videoLengthMode || 'fade';
         }
     );
 
