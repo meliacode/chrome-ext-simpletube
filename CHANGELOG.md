@@ -2,6 +2,12 @@
 
 ## Versions
 
+v0.10.0 (beta):
+
+- **feat**: options/content - add configurable video views filter with min/max range and fade/hide mode.
+- **feat**: content - apply views filtering across major YouTube surfaces including home, subscriptions, channels, search, and watch recommendations.
+- **docs**: update README with views filter behavior and parsing notes.
+
 v0.9.0:
 
 - **feat**: Hide expanded recommendation sections on subscriptions page (sections with id="dismissible").
