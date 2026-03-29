@@ -17,8 +17,9 @@
                         <span class="sptcl-el-title">YouTube Filters & Subscriptions Manager</span>
                     </h1>
                     <p class="sptcl-el-description">
-                        Fine-tune how SimpleTube hides distractions, filters videos, and organizes subscriptions.
-                        Changes save automatically.
+                        Fine-tune how SimpleTube hides distractions, filters videos by length or views, and how to
+                        organize subscriptions with categories. <br />Changes save automatically and apply on supported
+                        YouTube pages.
                     </p>
                 </div>
 
@@ -44,7 +45,8 @@
                 <div class="sptcl-cp-section-header">
                     <h2>General Options</h2>
                     <p class="sptcl-cp-section-description">
-                        Reduce common distractions across YouTube pages without changing your subscriptions or history.
+                        Turn on simple cleanup controls to hide common distractions in feeds and subscription views,
+                        without changing your YouTube account data or history.
                     </p>
                 </div>
 
@@ -52,10 +54,10 @@
                     <span class="sptcl-opt-grouped-inner">
                         <input type="checkbox" id="sptid-do-hide-watched" class="sptcl-form-checkbox-input" />
                         <span>
-                            <span class="sptcl-opt-label-text">Hide watched videos</span>
+                            <span class="sptcl-opt-label-text">Hide watched videos from feed lists</span>
                             <span class="sptcl-opt-label-help">
-                                Removes videos YouTube already marks as watched, which helps keep your feed focused on
-                                fresh content.
+                                On supported pages, videos with a visible watched progress bar are removed from the list
+                                so you mainly see unwatched items.
                             </span>
                         </span>
                     </span>
@@ -66,10 +68,10 @@
                     <span class="sptcl-opt-grouped-inner">
                         <input type="checkbox" id="sptid-do-hide-shorts" class="sptcl-form-checkbox-input" />
                         <span>
-                            <span class="sptcl-opt-label-text">Hide Shorts sections</span>
+                            <span class="sptcl-opt-label-text">Hide Shorts shelves in page content</span>
                             <span class="sptcl-opt-label-help">
-                                Hides Shorts shelves on supported pages. The Shorts link in YouTube's navigation still
-                                stays available.
+                                Shorts rows and shelves are removed from supported feeds. This does not disable the
+                                Shorts area in YouTube's own left navigation.
                             </span>
                         </span>
                     </span>
@@ -84,10 +86,10 @@
                             class="sptcl-form-checkbox-input"
                         />
                         <span>
-                            <span class="sptcl-opt-label-text">Hide expandable sections</span>
+                            <span class="sptcl-opt-label-text">Hide expandable recommendation sections</span>
                             <span class="sptcl-opt-label-help">
-                                Removes expandable recommendation blocks so subscription-related pages stay cleaner and
-                                easier to scan.
+                                Removes expandable "show more" style blocks on subscriptions surfaces so channel/video
+                                lists are flatter and faster to scan.
                             </span>
                         </span>
                     </span>
@@ -100,7 +102,8 @@
                 <div class="sptcl-cp-section-header">
                     <h2>Video Length Filter</h2>
                     <p class="sptcl-cp-section-description">
-                        Set a preferred duration range. Videos outside the range can be faded or hidden completely.
+                        Choose a minimum and maximum video length (in minutes), then decide whether videos outside that
+                        range should be faded or fully hidden.
                     </p>
                 </div>
 
@@ -108,10 +111,10 @@
                     <span class="sptcl-opt-grouped-inner">
                         <input type="checkbox" id="sptid-do-fade-by-length" class="sptcl-form-checkbox-input" />
                         <span>
-                            <span class="sptcl-opt-label-text">Enable length filter</span>
+                            <span class="sptcl-opt-label-text">Apply video length filter</span>
                             <span class="sptcl-opt-label-help">
-                                When enabled, SimpleTube compares supported videos against the minimum and maximum
-                                values below.
+                                Compares each supported video duration to your minimum and maximum values. Videos
+                                outside the range use the action you select below.
                             </span>
                         </span>
                     </span>
@@ -122,7 +125,9 @@
                     <div class="sptcl-grid-fields">
                         <div class="sptcl-opt-grouped">
                             <label for="sptid-video-length-min" class="sptcl-opt-label-text">Minimum length</label>
-                            <span class="sptcl-opt-label-help">Videos shorter than this value will be affected.</span>
+                            <span class="sptcl-opt-label-help">
+                                Lower bound in minutes. Videos shorter than this are treated as out of range.
+                            </span>
                             <select id="sptid-video-length-min" class="sptcl-form-select-input">
                                 <option value="0">0 minutes</option>
                                 <option value="5">5 minutes</option>
@@ -140,7 +145,9 @@
 
                         <div class="sptcl-opt-grouped">
                             <label for="sptid-video-length-max" class="sptcl-opt-label-text">Maximum length</label>
-                            <span class="sptcl-opt-label-help">Videos longer than this value will be affected.</span>
+                            <span class="sptcl-opt-label-help">
+                                Upper bound in minutes. Videos longer than this are treated as out of range.
+                            </span>
                             <select id="sptid-video-length-max" class="sptcl-form-select-input">
                                 <option value="5">5 minutes</option>
                                 <option value="10">10 minutes</option>
@@ -160,7 +167,8 @@
                                 Action outside range
                             </label>
                             <span class="sptcl-opt-label-help">
-                                Fade keeps non-matching videos visible. Hide removes them from view.
+                                Controls the visual effect for out-of-range videos: Fade keeps them visible but dim,
+                                Hide removes them from layout.
                             </span>
                             <select id="sptid-video-length-mode" class="sptcl-form-select-input">
                                 <option value="fade">Fade (reduce opacity)</option>
@@ -177,8 +185,8 @@
                 <div class="sptcl-cp-section-header">
                     <h2>Video Views Filter</h2>
                     <p class="sptcl-cp-section-description">
-                        Control how much popularity matters by fading or hiding videos outside your preferred views
-                        range.
+                        Choose a preferred views range (in number of views), then decide whether videos outside that
+                        range should be faded or fully hidden.
                     </p>
                 </div>
 
@@ -186,9 +194,10 @@
                     <span class="sptcl-opt-grouped-inner">
                         <input type="checkbox" id="sptid-do-filter-by-views" class="sptcl-form-checkbox-input" />
                         <span>
-                            <span class="sptcl-opt-label-text">Enable views filter</span>
+                            <span class="sptcl-opt-label-text">Apply video views filter</span>
                             <span class="sptcl-opt-label-help">
-                                Applies a minimum and maximum views range on supported YouTube surfaces.
+                                Compares visible view counts against your minimum and maximum values on supported
+                                surfaces.
                             </span>
                         </span>
                     </span>
@@ -199,7 +208,9 @@
                     <div class="sptcl-grid-fields">
                         <div class="sptcl-opt-grouped">
                             <label for="sptid-video-views-min" class="sptcl-opt-label-text">Minimum views</label>
-                            <span class="sptcl-opt-label-help">Videos below this number will be affected.</span>
+                            <span class="sptcl-opt-label-help">
+                                Lower bound for visible view counts. Videos below this are treated as out of range.
+                            </span>
                             <select id="sptid-video-views-min" class="sptcl-form-select-input">
                                 <option value="0">0</option>
                                 <option value="100">100</option>
@@ -217,7 +228,9 @@
 
                         <div class="sptcl-opt-grouped">
                             <label for="sptid-video-views-max" class="sptcl-opt-label-text">Maximum views</label>
-                            <span class="sptcl-opt-label-help">Videos above this number will be affected.</span>
+                            <span class="sptcl-opt-label-help">
+                                Upper bound for visible view counts. Videos above this are treated as out of range.
+                            </span>
                             <select id="sptid-video-views-max" class="sptcl-form-select-input">
                                 <option value="100">100</option>
                                 <option value="500">500</option>
@@ -237,7 +250,8 @@
                                 Action outside range
                             </label>
                             <span class="sptcl-opt-label-help">
-                                Fade gives softer filtering. Hide produces a stricter, shorter list.
+                                Controls the visual effect for out-of-range videos: Fade keeps them visible but dim,
+                                Hide removes them from layout.
                             </span>
                             <select id="sptid-video-views-mode" class="sptcl-form-select-input">
                                 <option value="fade">Fade (reduce opacity)</option>
@@ -256,11 +270,11 @@
                 <div class="sptcl-cp-section-header">
                     <h2>Subscription Categories</h2>
                     <p class="sptcl-cp-section-description">
-                        Organize subscribed channels into categories so your
+                        Create custom categories to organize subscribed channels so your
                         <a href="https://www.youtube.com/feed/subscriptions" target="_blank" class="sptcl-el-link">
                             subscriptions page
                         </a>
-                        is easier to filter. Category assignments are managed from the
+                        is easier to filter. Add category names here, then assign channels from the
                         <a href="https://www.youtube.com/feed/channels" target="_blank" class="sptcl-el-link">
                             channels listing page
                         </a>
@@ -278,8 +292,8 @@
                         <span>
                             <span class="sptcl-opt-label-text">Enable subscription categories</span>
                             <span class="sptcl-opt-label-help">
-                                Adds category filters to the subscriptions page and category selectors to supported
-                                channel pages.
+                                Shows category tabs on the subscriptions page and adds per-channel category selectors on
+                                supported channel list pages.
                             </span>
                         </span>
                     </span>
@@ -291,7 +305,7 @@
                         <div class="sptcl-opt-category-toolbar-inner">
                             <label for="sptid-category-name" class="sptcl-opt-label-text">Category name</label>
                             <span class="sptcl-opt-label-help">
-                                Keep names short so category tabs stay readable on the subscriptions page.
+                                Creates a new category label used in subscription tabs and channel assignments.
                             </span>
                             <input
                                 type="text"
@@ -319,12 +333,14 @@
                 <div class="sptcl-cp-section-header">
                     <h2>Reset Settings</h2>
                     <p class="sptcl-cp-section-description">
-                        Restore all option values to their defaults. Saved categories stay available so you do not need
-                        to recreate them.
+                        Reset all options and filter values on this page to defaults. Your saved category (names and
+                        category assignments) are kept.
                     </p>
                 </div>
 
-                <button id="sptid-settings-reset" class="sptcl-form-button" type="button">Reset Settings</button>
+                <button id="sptid-settings-reset" class="sptcl-form-button" type="button">
+                    Reset options to defaults
+                </button>
             </section>
         </main>
 
