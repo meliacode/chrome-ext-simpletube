@@ -4,16 +4,12 @@ This Chrome extension allows users to filter YouTube content by video length and
 
 ## Features
 
-- **Hide Shorts Section**: Remove the "Shorts" section from YouTube to declutter your homepage.
-- **Hide Watched Videos**: Hide videos that you have already watched, helping you focus on new content.
-- **Video Length Filter**: Adjust the visibility of videos based on their length. You can specify a minimum and maximum duration, and videos that fall outside this range will have their opacity reduced.
-- **Video Views Filter**: Filter videos by number of views with configurable minimum and maximum values. Videos outside the range can be faded or hidden.
-- **Hide Expanded Sections on Subscriptions**: Hide expanded recommendation sections on the subscriptions page to reduce distractions and focus on your subscribed channels.
-- **Subscription Categories**: Organize your channel subscriptions into categories and filter videos on your subscriptions page based on these categories. Filtering persists even when new content is dynamically loaded by YouTube, but not on page reload.
-    - **Channel Page Dropdown for Category Assignment**: Assign categories to each subscribed channel directly on the channel management page with improved styling for better contrast and YouTube-like appearance.
-    - **Category Filters on Subscriptions and Channel Pages**: Easily filter your subscription videos or channels by category, including categories like "All" or "Not Assigned".
-    - **Smart Category Filtering**: Only categories with at least one assigned channel are displayed on the subscriptions page, keeping the UI clean and focused.
-    - **Persistent Filters on Dynamic Content**: The filter applied on the subscription page remains active as new videos are loaded dynamically by YouTube, providing a seamless browsing experience.
+- **Hide Watched Videos**: Hide videos you have already watched on supported pages, helping you focus on unwatched content.
+- **Hide Shorts Shelves**: Remove Shorts rows and shelves from supported feeds. (The Shorts link in YouTube's own navigation remains accessible.)
+- **Hide Expandable Sections**: Hide expanded recommendation blocks on subscriptions pages to reduce clutter and make lists easier to scan.
+- **Video Length Filter**: Set a minimum and maximum video duration (in minutes). Videos outside your range can be faded (dimmed) or hidden completely.
+- **Video Views Filter**: Set a preferred views range. Videos outside your range can be faded (dimmed) or hidden completely.
+- **Subscription Categories**: Organize subscribed channels into custom categories. Create category names in the options page, assign channels on the subscriptions/channels listing page, and filter your subscriptions page by category. Only categories with assigned channels appear in filters, and filters persist when YouTube dynamically loads content.
 
 ## Installation
 
@@ -31,22 +27,33 @@ This Chrome extension allows users to filter YouTube content by video length and
 
 Once installed and configured, the extension automatically applies your selected filters on YouTube.
 
-- Videos outside the specified length range will have reduced opacity.
-- Videos outside the specified views range can be faded or hidden based on your selected mode.
-- Watched videos can be hidden entirely.
-- The "Shorts" section can be hidden for a more focused YouTube experience.
-- Expanded recommendation sections on the subscriptions page can be hidden to reduce distractions.
-- Filter your subscriptions page by categories for easier content discovery.
-    - Assign categories to your channels subscriptions on the channel page and filter based on these assignments for better management.
-    - Only categories with at least one assigned channel will appear in the subscription page filters.
+**General Options:**
 
-Views filter notes:
+- Hide watched videos from feed lists to focus on new content.
+- Hide Shorts shelves from your feeds (Shorts navigation link remains available).
+- Hide expandable recommendation blocks on subscriptions pages.
 
-- The views filter runs on all major YouTube surfaces (home, subscriptions, channels, search, and watch recommendations).
-- View text is parsed from YouTube metadata labels (for example `1,234 views`, `12K views`, `3.4M views`).
-- If a card has an unrecognized metadata format, it is left unchanged (fail-open behavior).
+**Video Length Filter:**
 
-Implementation details (performance):
+- Set minimum and maximum duration (in minutes).
+- Choose action for out-of-range videos: Fade (dimmed) or Hide (removed from view).
+
+**Video Views Filter:**
+
+- Set minimum and maximum view counts.
+- Choose action for out-of-range videos: Fade (dimmed) or Hide (removed from view).
+- View text is parsed from YouTube metadata labels (e.g., `1,234 views`, `12K views`, `3.4M views`).
+- Unrecognized formats are left unchanged.
+
+**Subscription Categories:**
+
+- Create custom category names in the options page.
+- Assign subscribed channels to categories on the subscriptions/channels listing page.
+- Filter your subscriptions page by category.
+- Only categories with at least one assigned channel appear in the filter tabs.
+- Filters persist when YouTube dynamically loads new content (reset on page reload).
+
+### Implementation details (performance):
 
 - Visual changes are applied via CSS classes so scripts avoid frequent inline style writes.
 - Content scripts use a debounced MutationObserver instead of tight polling, which lowers CPU usage and reduces UI jank when YouTube dynamically injects content.
