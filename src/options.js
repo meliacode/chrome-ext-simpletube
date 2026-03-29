@@ -7,12 +7,39 @@
  * Helper Functions
  */
 
+function updateOptionGroupsState() {
+    const lengthEnabled = document.getElementById('sptid-do-fade-by-length').checked;
+    const viewsEnabled = document.getElementById('sptid-do-filter-by-views').checked;
+
+    const lengthGroup = document.getElementById('sptid-video-length-group');
+    const viewsGroup = document.getElementById('sptid-video-views-group');
+
+    [
+        document.getElementById('sptid-video-length-min'),
+        document.getElementById('sptid-video-length-max'),
+        document.getElementById('sptid-video-length-mode'),
+    ].forEach((element) => {
+        element.disabled = !lengthEnabled;
+    });
+
+    [
+        document.getElementById('sptid-video-views-min'),
+        document.getElementById('sptid-video-views-max'),
+        document.getElementById('sptid-video-views-mode'),
+    ].forEach((element) => {
+        element.disabled = !viewsEnabled;
+    });
+
+    lengthGroup.classList.toggle('sptcl-js-is-disabled', !lengthEnabled);
+    viewsGroup.classList.toggle('sptcl-js-is-disabled', !viewsEnabled);
+}
+
 function renderAlertMessage(message, error = false) {
     const messageElement = document.getElementById('sptid-alert-message');
-    messageElement.classList.remove('sptcl-error', 'sptcl-success');
+    messageElement.classList.remove('sptcl-js-error', 'sptcl-js-success');
 
     messageElement.textContent = message;
-    messageElement.classList.add(error ? 'sptcl-error' : 'sptcl-success');
+    messageElement.classList.add(error ? 'sptcl-js-error' : 'sptcl-js-success');
 
     // Clear any existing timeout to handle quick clicks
     if (renderAlertMessage.timeoutId) {
@@ -21,12 +48,12 @@ function renderAlertMessage(message, error = false) {
 
     // Hide the message after 5 seconds
     renderAlertMessage.timeoutId = setTimeout(() => {
-        messageElement.classList.remove('sptcl-error', 'sptcl-success');
+        messageElement.classList.remove('sptcl-js-error', 'sptcl-js-success');
         messageElement.textContent = '';
     }, 5000);
 }
 
-function renderListCategories(categories) {
+function renderListCategories(categories = []) {
     const categoriesList = document.getElementById('sptid-categories-list');
     categoriesList.innerHTML = '';
 
@@ -37,7 +64,7 @@ function renderListCategories(categories) {
     if (categories.length === 0) {
         const emptyLiElement = document.createElement('li');
         emptyLiElement.textContent = 'No categories added yet!';
-        emptyLiElement.classList.add('sptcl-empty-item');
+        emptyLiElement.classList.add('sptcl-js-empty-item');
 
         categoriesList.appendChild(emptyLiElement);
         return;
@@ -54,12 +81,12 @@ function renderListCategories(categories) {
 
         // Create div to hold the action buttons
         const actionsDiv = document.createElement('div');
-        actionsDiv.classList.add('sptcl-category-actions');
+        actionsDiv.classList.add('sptcl-js-category-actions');
 
         // Create delete button for each category
         const deleteButton = document.createElement('button');
         deleteButton.textContent = 'delete';
-        deleteButton.classList.add('sptcl-form-category-actions-button');
+        deleteButton.classList.add('sptcl-js-form-button-category');
 
         deleteButton.addEventListener('click', () => {
             // Remove the associated category from all subscriptions
@@ -74,7 +101,7 @@ function renderListCategories(categories) {
             });
 
             // Remove the category from the list
-            chrome.storage.sync.get(['categories'], ({ categories }) => {
+            chrome.storage.sync.get(['categories'], ({ categories = [] }) => {
                 const newCategories = categories.filter((c) => c.id !== id);
 
                 chrome.storage.sync.set({ categories: newCategories }, () => {
@@ -87,13 +114,13 @@ function renderListCategories(categories) {
         // Create rename button for each category
         const renameButton = document.createElement('button');
         renameButton.textContent = 'rename';
-        renameButton.classList.add('sptcl-form-category-actions-button');
+        renameButton.classList.add('sptcl-js-form-button-category');
 
         renameButton.addEventListener('click', () => {
             const newName = prompt('Enter new name for the category:', name);
 
             if (newName && newName.trim() !== '' && newName.trim() !== name) {
-                chrome.storage.sync.get(['categories'], ({ categories }) => {
+                chrome.storage.sync.get(['categories'], ({ categories = [] }) => {
                     if (categories.some((category) => category.name === newName.trim())) {
                         renderAlertMessage(`Category "${newName.trim()}" already exists!`, true);
                         return;
@@ -158,6 +185,8 @@ document.getElementById('sptid-do-fade-by-length').addEventListener('click', () 
     const fadeByLength = document.getElementById('sptid-do-fade-by-length').checked;
 
     chrome.storage.sync.set({ doFadeByLength: fadeByLength }, () => {
+        updateOptionGroupsState();
+
         renderAlertMessage(`Fade by length ${fadeByLength ? 'enabled' : 'disabled'} successfully!`);
     });
 });
@@ -201,6 +230,8 @@ document.getElementById('sptid-do-filter-by-views').addEventListener('click', ()
     const filterByViews = document.getElementById('sptid-do-filter-by-views').checked;
 
     chrome.storage.sync.set({ doFilterByViews: filterByViews }, () => {
+        updateOptionGroupsState();
+
         renderAlertMessage(`Filter by views ${filterByViews ? 'enabled' : 'disabled'} successfully!`);
     });
 });
@@ -251,7 +282,7 @@ document.getElementById('sptid-category-add').addEventListener('click', () => {
     const categoryName = document.getElementById('sptid-category-name').value.trim();
 
     if (categoryName) {
-        chrome.storage.sync.get(['categories'], ({ categories }) => {
+        chrome.storage.sync.get(['categories'], ({ categories = [] }) => {
             if (categories.some((category) => category.name === categoryName)) {
                 renderAlertMessage(`Category "${categoryName}" already exists!`, true);
                 return;
@@ -290,6 +321,8 @@ document.getElementById('sptid-settings-reset').addEventListener('click', () => 
     document.getElementById('sptid-video-views-mode').value = 'fade';
 
     document.getElementById('sptid-do-categorize-subscription').checked = true;
+
+    updateOptionGroupsState();
 
     // Save the settings to Chrome's storage
     chrome.storage.sync.set(
@@ -368,11 +401,13 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('sptid-video-views-mode').value = videoViewsMode || 'fade';
 
             document.getElementById('sptid-do-categorize-subscription').checked = doCategorizeSubscription;
+
+            updateOptionGroupsState();
         }
     );
 
     // Load the categories from Chrome's storage
-    chrome.storage.sync.get(['categories'], ({ categories }) => {
+    chrome.storage.sync.get(['categories'], ({ categories = [] }) => {
         renderListCategories(categories);
     });
 });

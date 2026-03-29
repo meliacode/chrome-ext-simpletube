@@ -6,213 +6,326 @@
         <link rel="stylesheet" href="options.css" />
     </head>
     <body>
-        <main class="sptcl-opt-content-wrapper">
-            <h1>
-                <span class="sptcl-brand-color">SimpleTube</span>
-                <span id="sptid-version" class="sptcl-brand-version"></span>
-                - YouTube Filters & Subscriptions Manager
-            </h1>
+        <main class="sptcl-grid-content-wrapper">
+            <!-- HERO -->
+            <section class="sptcl-cp-hero">
+                <div class="sptcl-cp-hero-head sptcl-grid-panel">
+                    <p class="sptcl-el-eyebrow">Options</p>
+                    <h1>
+                        <span class="sptcl-el-brand-color">SimpleTube</span>
+                        <span id="sptid-version" class="sptcl-el-brand-note"></span>
+                        <span class="sptcl-el-title">YouTube Filters & Subscriptions Manager</span>
+                    </h1>
+                    <p class="sptcl-el-description">
+                        Fine-tune how SimpleTube hides distractions, filters videos, and organizes subscriptions.
+                        Changes save automatically.
+                    </p>
+                </div>
+
+                <aside class="sptcl-cp-hero-card sptcl-grid-panel">
+                    <h2>Feedback</h2>
+                    <p>Using the extension regularly? Share feedback, leave a rating, or suggest improvements.</p>
+                    <a
+                        class="sptcl-el-link"
+                        href="https://chromewebstore.google.com/detail/simpletube-youtube-filter/ipjkpeklopbgkjokfejpgignhmegjfca"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        Open Chrome Web Store page
+                    </a>
+                </aside>
+            </section>
 
             <!-- MESSAGE -->
-            <div id="sptid-alert-message" class="sptcl-opt-alert-message">.</div>
+            <div id="sptid-alert-message" class="sptcl-cp-alert-message"></div>
 
             <!-- OPTIONS: General Options -->
-            <div class="sptcl-opt-content-section">
-                <h2>General Options</h2>
-                <p class="sptcl-opt-description">
-                    Hide or show specific sections or elements based on user preferences.
-                </p>
+            <section class="sptcl-cp-section sptcl-grid-panel">
+                <div class="sptcl-cp-section-header">
+                    <h2>General Options</h2>
+                    <p class="sptcl-cp-section-description">
+                        Reduce common distractions across YouTube pages without changing your subscriptions or history.
+                    </p>
+                </div>
 
-                <label for="sptid-do-hide-watched" class="sptcl-form-option-label">
-                    <input type="checkbox" id="sptid-do-hide-watched" />
-                    Hide watched videos
-                    <span class="sptcl-opt-default-info">(Default: false)</span>
+                <label for="sptid-do-hide-watched" class="sptcl-opt-grouped">
+                    <span class="sptcl-opt-grouped-inner">
+                        <input type="checkbox" id="sptid-do-hide-watched" class="sptcl-form-checkbox-input" />
+                        <span>
+                            <span class="sptcl-opt-label-text">Hide watched videos</span>
+                            <span class="sptcl-opt-label-help">
+                                Removes videos YouTube already marks as watched, which helps keep your feed focused on
+                                fresh content.
+                            </span>
+                        </span>
+                    </span>
+                    <span class="sptcl-opt-label-default">Default: Off</span>
                 </label>
 
-                <label for="sptid-do-hide-shorts" class="sptcl-form-option-label">
-                    <input type="checkbox" id="sptid-do-hide-shorts" />
-                    Hide 'Shorts' section on pages
-                    <span class="sptcl-opt-default-info">(Default: false)</span>
-                    <span class="stp-opt-additonal-info"> we still display the 'Shorts' link in the menu </span>
+                <label for="sptid-do-hide-shorts" class="sptcl-opt-grouped">
+                    <span class="sptcl-opt-grouped-inner">
+                        <input type="checkbox" id="sptid-do-hide-shorts" class="sptcl-form-checkbox-input" />
+                        <span>
+                            <span class="sptcl-opt-label-text">Hide Shorts sections</span>
+                            <span class="sptcl-opt-label-help">
+                                Hides Shorts shelves on supported pages. The Shorts link in YouTube's navigation still
+                                stays available.
+                            </span>
+                        </span>
+                    </span>
+                    <span class="sptcl-opt-label-default">Default: Off</span>
                 </label>
 
-                <label for="sptid-do-hide-subscriptions-expandable-sections" class="sptcl-form-option-label">
-                    <input type="checkbox" id="sptid-do-hide-subscriptions-expandable-sections" />
-                    Hide expandable sections on pages
-                    <span class="sptcl-opt-default-info">(Default: false)</span>
+                <label for="sptid-do-hide-subscriptions-expandable-sections" class="sptcl-opt-grouped">
+                    <span class="sptcl-opt-grouped-inner">
+                        <input
+                            type="checkbox"
+                            id="sptid-do-hide-subscriptions-expandable-sections"
+                            class="sptcl-form-checkbox-input"
+                        />
+                        <span>
+                            <span class="sptcl-opt-label-text">Hide expandable sections</span>
+                            <span class="sptcl-opt-label-help">
+                                Removes expandable recommendation blocks so subscription-related pages stay cleaner and
+                                easier to scan.
+                            </span>
+                        </span>
+                    </span>
+                    <span class="sptcl-opt-label-default">Default: Off</span>
                 </label>
-            </div>
+            </section>
 
             <!-- OPTIONS: Video Length Filter -->
-            <div class="sptcl-opt-content-section">
-                <h2>Video Length Filter</h2>
-                <p class="sptcl-opt-description">
-                    Videos NOT within the selected range will appear with reduced opacity.
-                </p>
+            <section class="sptcl-cp-section sptcl-grid-panel">
+                <div class="sptcl-cp-section-header">
+                    <h2>Video Length Filter</h2>
+                    <p class="sptcl-cp-section-description">
+                        Set a preferred duration range. Videos outside the range can be faded or hidden completely.
+                    </p>
+                </div>
 
-                <label for="sptid-do-fade-by-length" class="sptcl-form-option-label">
-                    <input type="checkbox" id="sptid-do-fade-by-length" />
-                    Enable filter by video length
-                    <span class="sptcl-opt-default-info">(Default: true)</span>
+                <label for="sptid-do-fade-by-length" class="sptcl-opt-grouped">
+                    <span class="sptcl-opt-grouped-inner">
+                        <input type="checkbox" id="sptid-do-fade-by-length" class="sptcl-form-checkbox-input" />
+                        <span>
+                            <span class="sptcl-opt-label-text">Enable length filter</span>
+                            <span class="sptcl-opt-label-help">
+                                When enabled, SimpleTube compares supported videos against the minimum and maximum
+                                values below.
+                            </span>
+                        </span>
+                    </span>
+                    <span class="sptcl-opt-label-default">Default: On</span>
                 </label>
 
-                <br />
+                <div id="sptid-video-length-group">
+                    <div class="sptcl-grid-fields">
+                        <div class="sptcl-opt-grouped">
+                            <label for="sptid-video-length-min" class="sptcl-opt-label-text">Minimum length</label>
+                            <span class="sptcl-opt-label-help">Videos shorter than this value will be affected.</span>
+                            <select id="sptid-video-length-min" class="sptcl-form-select-input">
+                                <option value="0">0 minutes</option>
+                                <option value="5">5 minutes</option>
+                                <option value="10">10 minutes</option>
+                                <option value="20">20 minutes</option>
+                                <option value="30">30 minutes</option>
+                                <option value="40">40 minutes</option>
+                                <option value="50">50 minutes</option>
+                                <option value="60">1 hour</option>
+                                <option value="90">1 hour 30 minutes</option>
+                                <option value="120">2 hours</option>
+                            </select>
+                            <span class="sptcl-opt-label-default">Default: 0 minutes</span>
+                        </div>
 
-                <label for="sptid-video-length-min" class="sptcl-form-option-label">
-                    Select minimum video length:
-                    <span class="sptcl-opt-default-info">(Default: 0 minutes)</span>
-                </label>
-                <select id="sptid-video-length-min" class="sptcl-form-select-input">
-                    <option value="0">0 minutes</option>
-                    <option value="5">5 minutes</option>
-                    <option value="10">10 minutes</option>
-                    <option value="20">20 minutes</option>
-                    <option value="30">30 minutes</option>
-                    <option value="40">40 minutes</option>
-                    <option value="50">50 minutes</option>
-                    <option value="60">1 hour</option>
-                    <option value="90">1 hour 30 minutes</option>
-                    <option value="120">2 hours</option>
-                </select>
+                        <div class="sptcl-opt-grouped">
+                            <label for="sptid-video-length-max" class="sptcl-opt-label-text">Maximum length</label>
+                            <span class="sptcl-opt-label-help">Videos longer than this value will be affected.</span>
+                            <select id="sptid-video-length-max" class="sptcl-form-select-input">
+                                <option value="5">5 minutes</option>
+                                <option value="10">10 minutes</option>
+                                <option value="20">20 minutes</option>
+                                <option value="30">30 minutes</option>
+                                <option value="40">40 minutes</option>
+                                <option value="50">50 minutes</option>
+                                <option value="60">1 hour</option>
+                                <option value="90">1 hour 30 minutes</option>
+                                <option value="120">2 hours</option>
+                            </select>
+                            <span class="sptcl-opt-label-default">Default: 30 minutes</span>
+                        </div>
 
-                <label for="sptid-video-length-max" class="sptcl-form-option-label">
-                    Select maximum video length:
-                    <span class="sptcl-opt-default-info">(Default: 30 minutes)</span>
-                </label>
-                <select id="sptid-video-length-max" class="sptcl-form-select-input">
-                    <option value="5">5 minutes</option>
-                    <option value="10">10 minutes</option>
-                    <option value="20">20 minutes</option>
-                    <option value="30">30 minutes</option>
-                    <option value="40">40 minutes</option>
-                    <option value="50">50 minutes</option>
-                    <option value="60">1 hour</option>
-                    <option value="90">1 hour 30 minutes</option>
-                    <option value="120">2 hours</option>
-                </select>
+                        <div class="sptcl-opt-grouped">
+                            <label for="sptid-video-length-mode" class="sptcl-opt-label-text">
+                                Action outside range
+                            </label>
+                            <span class="sptcl-opt-label-help">
+                                Fade keeps non-matching videos visible. Hide removes them from view.
+                            </span>
+                            <select id="sptid-video-length-mode" class="sptcl-form-select-input">
+                                <option value="fade">Fade (reduce opacity)</option>
+                                <option value="hide">Hide (remove from view)</option>
+                            </select>
+                            <span class="sptcl-opt-label-default">Impact: Hide is stricter than Fade.</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-                <label for="sptid-video-length-mode" class="sptcl-form-option-label">
-                    Action for videos outside the range:
-                    <span class="sptcl-opt-default-info">(Default: Fade)</span>
+            <!-- OPTIONS: Video Views Filter -->
+            <section class="sptcl-cp-section sptcl-grid-panel">
+                <div class="sptcl-cp-section-header">
+                    <h2>Video Views Filter</h2>
+                    <p class="sptcl-cp-section-description">
+                        Control how much popularity matters by fading or hiding videos outside your preferred views
+                        range.
+                    </p>
+                </div>
+
+                <label for="sptid-do-filter-by-views" class="sptcl-opt-grouped">
+                    <span class="sptcl-opt-grouped-inner">
+                        <input type="checkbox" id="sptid-do-filter-by-views" class="sptcl-form-checkbox-input" />
+                        <span>
+                            <span class="sptcl-opt-label-text">Enable views filter</span>
+                            <span class="sptcl-opt-label-help">
+                                Applies a minimum and maximum views range on supported YouTube surfaces.
+                            </span>
+                        </span>
+                    </span>
+                    <span class="sptcl-opt-label-default">Default: Off</span>
                 </label>
-                <select id="sptid-video-length-mode" class="sptcl-form-select-input">
-                    <option value="fade">Fade (reduce opacity)</option>
-                    <option value="hide">Hide (remove from view)</option>
-                </select>
-            </div>
+
+                <div id="sptid-video-views-group">
+                    <div class="sptcl-grid-fields">
+                        <div class="sptcl-opt-grouped">
+                            <label for="sptid-video-views-min" class="sptcl-opt-label-text">Minimum views</label>
+                            <span class="sptcl-opt-label-help">Videos below this number will be affected.</span>
+                            <select id="sptid-video-views-min" class="sptcl-form-select-input">
+                                <option value="0">0</option>
+                                <option value="100">100</option>
+                                <option value="500">500</option>
+                                <option value="1000">1K</option>
+                                <option value="10000">10K</option>
+                                <option value="50000">50K</option>
+                                <option value="100000">100K</option>
+                                <option value="500000">500K</option>
+                                <option value="1000000">1M</option>
+                                <option value="5000000">5M</option>
+                            </select>
+                            <span class="sptcl-opt-label-default">Default: 0</span>
+                        </div>
+
+                        <div class="sptcl-opt-grouped">
+                            <label for="sptid-video-views-max" class="sptcl-opt-label-text">Maximum views</label>
+                            <span class="sptcl-opt-label-help">Videos above this number will be affected.</span>
+                            <select id="sptid-video-views-max" class="sptcl-form-select-input">
+                                <option value="100">100</option>
+                                <option value="500">500</option>
+                                <option value="1000">1K</option>
+                                <option value="10000">10K</option>
+                                <option value="50000">50K</option>
+                                <option value="100000">100K</option>
+                                <option value="500000">500K</option>
+                                <option value="1000000" selected>1M</option>
+                                <option value="5000000">5M</option>
+                            </select>
+                            <span class="sptcl-opt-label-default">Default: 1M</span>
+                        </div>
+
+                        <div class="sptcl-opt-grouped">
+                            <label for="sptid-video-views-mode" class="sptcl-opt-label-text">
+                                Action outside range
+                            </label>
+                            <span class="sptcl-opt-label-help">
+                                Fade gives softer filtering. Hide produces a stricter, shorter list.
+                            </span>
+                            <select id="sptid-video-views-mode" class="sptcl-form-select-input">
+                                <option value="fade">Fade (reduce opacity)</option>
+                                <option value="hide">Hide (remove from view)</option>
+                            </select>
+                            <span class="sptcl-opt-label-default">
+                                Impact: unrecognized YouTube view formats are left unchanged.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
             <!-- OPTIONS: Subscription Categories Manager -->
-            <div class="sptcl-opt-content-section">
-                <h2>Video Views Filter</h2>
-                <p class="sptcl-opt-description">
-                    Apply filters based on the number of views. Videos outside the range can be faded or hidden.
-                </p>
+            <section class="sptcl-cp-section sptcl-grid-panel">
+                <div class="sptcl-cp-section-header">
+                    <h2>Subscription Categories</h2>
+                    <p class="sptcl-cp-section-description">
+                        Organize subscribed channels into categories so your
+                        <a href="https://www.youtube.com/feed/subscriptions" target="_blank" class="sptcl-el-link">
+                            subscriptions page
+                        </a>
+                        is easier to filter. Category assignments are managed from the
+                        <a href="https://www.youtube.com/feed/channels" target="_blank" class="sptcl-el-link">
+                            channels listing page
+                        </a>
+                        .
+                    </p>
+                </div>
 
-                <label for="sptid-do-filter-by-views" class="sptcl-form-option-label">
-                    <input type="checkbox" id="sptid-do-filter-by-views" />
-                    Enable filter by number of views
-                    <span class="sptcl-opt-default-info">(Default: false)</span>
+                <label for="sptid-do-categorize-subscription" class="sptcl-opt-grouped">
+                    <span class="sptcl-opt-grouped-inner">
+                        <input
+                            type="checkbox"
+                            id="sptid-do-categorize-subscription"
+                            class="sptcl-form-checkbox-input"
+                        />
+                        <span>
+                            <span class="sptcl-opt-label-text">Enable subscription categories</span>
+                            <span class="sptcl-opt-label-help">
+                                Adds category filters to the subscriptions page and category selectors to supported
+                                channel pages.
+                            </span>
+                        </span>
+                    </span>
+                    <span class="sptcl-opt-label-default">Default: On</span>
                 </label>
 
-                <br />
+                <div class="sptcl-opt-grouped">
+                    <div class="sptcl-opt-category-toolbar">
+                        <div class="sptcl-opt-category-toolbar-inner">
+                            <label for="sptid-category-name" class="sptcl-opt-label-text">Category name</label>
+                            <span class="sptcl-opt-label-help">
+                                Keep names short so category tabs stay readable on the subscriptions page.
+                            </span>
+                            <input
+                                type="text"
+                                id="sptid-category-name"
+                                class="sptcl-form-text-input"
+                                placeholder="New category name"
+                                maxlength="30"
+                            />
+                        </div>
 
-                <label for="sptid-video-views-min" class="sptcl-form-option-label">
-                    Select minimum number of views:
-                    <span class="sptcl-opt-default-info">(Default: 0)</span>
-                </label>
-                <select id="sptid-video-views-min" class="sptcl-form-select-input">
-                    <option value="0">0</option>
-                    <option value="100">100</option>
-                    <option value="500">500</option>
-                    <option value="1000">1K</option>
-                    <option value="10000">10K</option>
-                    <option value="50000">50K</option>
-                    <option value="100000">100K</option>
-                    <option value="500000">500K</option>
-                    <option value="1000000">1M</option>
-                    <option value="5000000">5M</option>
-                </select>
+                        <button id="sptid-category-add" class="sptcl-form-button" type="button">Add category</button>
+                    </div>
 
-                <label for="sptid-video-views-max" class="sptcl-form-option-label">
-                    Select maximum number of views:
-                    <span class="sptcl-opt-default-info">(Default: 1M)</span>
-                </label>
-                <select id="sptid-video-views-max" class="sptcl-form-select-input">
-                    <option value="100">100</option>
-                    <option value="500">500</option>
-                    <option value="1000">1K</option>
-                    <option value="10000">10K</option>
-                    <option value="50000">50K</option>
-                    <option value="100000">100K</option>
-                    <option value="500000">500K</option>
-                    <option value="1000000" selected>1M</option>
-                    <option value="5000000">5M</option>
-                </select>
+                    <p class="sptcl-opt-category-list-heading"><b>Saved categories</b></p>
+                    <ul id="sptid-categories-list" class="sptcl-opt-category-list-categories"></ul>
 
-                <label for="sptid-video-views-mode" class="sptcl-form-option-label">
-                    Action for videos outside the range:
-                    <span class="sptcl-opt-default-info">(Default: Fade)</span>
-                </label>
-                <select id="sptid-video-views-mode" class="sptcl-form-select-input">
-                    <option value="fade">Fade (reduce opacity)</option>
-                    <option value="hide">Hide (remove from view)</option>
-                </select>
-            </div>
-
-            <!-- OPTIONS: Subscription Categories Manager -->
-            <div class="sptcl-opt-content-section">
-                <h2>Subscription Categories Filter</h2>
-                <p class="sptcl-opt-description">
-                    Each category will appear at the top of your
-                    <a href="https://www.youtube.com/feed/subscriptions" target="_blank" class="sptcl-link">
-                        subscriptions page
-                    </a>
-                    , allowing you to filter videos easily.
-                    <br />
-                    You can assign categories to the channels you've subscribed to directly from the
-                    <a href="https://www.youtube.com/feed/channels" target="_blank" class="sptcl-link">
-                        channels listing page
-                    </a>
-                    .
-                </p>
-
-                <label for="sptid-do-categorize-subscription" class="sptcl-form-option-label">
-                    <input type="checkbox" id="sptid-do-categorize-subscription" />
-                    Enable filter by category on the subscription page
-                    <span class="sptcl-opt-default-info">(Default: true)</span>
-                </label>
-
-                <br />
-
-                <label for="sptid-category-name" class="sptcl-form-option-label"> Category name: </label>
-                <input
-                    type="text"
-                    id="sptid-category-name"
-                    class="sptcl-form-text-input"
-                    placeholder="New category name"
-                    maxlength="30"
-                />
-                <button id="sptid-category-add" class="sptcl-form-add-button">Add Category</button>
-                <span class="sptcl-opt-default-info">Max: 30 characters</span>
-
-                <p><b>List of categories:</b></p>
-                <ul id="sptid-categories-list" class="sptcl-opt-list-categories"></ul>
-
-                <p class="sptcl-opt-default-info">
-                    Categories are ordered alphabetically automatically when you add a new category.<br />
-                    Clicking the 'delete' button will remove the category and unassign all channels from it.
-                </p>
-            </div>
+                    <p class="sptcl-opt-label-default">
+                        Impact: deleting a category also removes that assignment from subscribed channels using it.
+                    </p>
+                </div>
+            </section>
 
             <!-- RESET -->
-            <div class="sptcl-opt-content-section">
-                <h2>Reset Settings</h2>
-                <p>
-                    <strong>Warning:</strong> This action will clear all settings back to their default values. However,
-                    categories will be kept intact so you wouldn't need to re-assigned channels to a category.
-                </p>
-                <button id="sptid-settings-reset" class="sptcl-form-reset-button">Reset Settings</button>
-            </div>
+            <section class="sptcl-cp-section sptcl-grid-panel">
+                <div class="sptcl-cp-section-header">
+                    <h2>Reset Settings</h2>
+                    <p class="sptcl-cp-section-description">
+                        Restore all option values to their defaults. Saved categories stay available so you do not need
+                        to recreate them.
+                    </p>
+                </div>
+
+                <button id="sptid-settings-reset" class="sptcl-form-button" type="button">Reset Settings</button>
+            </section>
         </main>
 
         <script src="options.js"></script>
