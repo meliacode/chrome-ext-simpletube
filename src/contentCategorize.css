@@ -1,6 +1,6 @@
 /* Category Dropdown */
 
-.sptcl-category-select {
+.sptcl-js-category-select {
     display: inline-block;
     position: relative;
     margin: 0px 0px 8px 8px;
@@ -22,21 +22,21 @@
     font-weight: 500;
 }
 
-.sptcl-category-select:active,
-.sptcl-category-select:hover {
+.sptcl-js-category-select:active,
+.sptcl-js-category-select:hover {
     background-color: var(--yt-spec-badge-chip-background-hover, var(--yt-spec-button-chip-background-hover));
 }
 
-.sptcl-category-select option,
-.sptcl-category-select option:hover {
+.sptcl-js-category-select option,
+.sptcl-js-category-select option:hover {
     background-color: var(--yt-spec-base-background, #ffffff);
     color: var(--yt-spec-text-primary, #0f0f0f);
 }
 
 /* Category Filter Buttons */
 
-.sptcl-channel-filter-container,
-.sptcl-subscription-filter-container {
+.sptcl-js-channel-filter-container,
+.sptcl-js-subscription-filter-container {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
@@ -45,7 +45,7 @@
     padding: 0;
 }
 
-.sptcl-filter-button {
+.sptcl-js-filter-button {
     display: inline-block;
     position: relative;
     margin: 0px calc(16px / 4);
@@ -60,16 +60,16 @@
     font-weight: 500;
 }
 
-.sptcl-filter-button[data-active] {
+.sptcl-js-filter-button[data-active] {
     background-color: var(--yt-spec-static-brand-red);
     color: var(--yt-spec-base-background);
 }
 
 /* Styles to reduce layout thrashing */
 
-.spt-hide-filtered {
+.sptcl-js-hide-filtered {
     display: none !important;
 }
-.spt-hide-filtered * {
+.sptcl-js-hide-filtered * {
     visibility: hidden !important;
 }

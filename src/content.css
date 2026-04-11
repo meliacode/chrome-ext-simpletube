@@ -1,40 +1,40 @@
 /* Styles to reduce layout thrashing */
 
-.spt-fade-length {
+.sptcl-js-fade-length {
     opacity: 0.25 !important;
     transition: opacity 160ms ease;
 }
 
-.spt-hide-length {
+.sptcl-js-hide-length {
     display: none !important;
 }
 
-.spt-fade-views {
+.sptcl-js-fade-views {
     opacity: 0.25 !important;
     transition: opacity 160ms ease;
 }
 
-.spt-hide-views {
+.sptcl-js-hide-views {
     display: none !important;
 }
 
-.spt-hide-shorts {
+.sptcl-js-hide-shorts {
     display: none !important;
 }
 
-.spt-hide-watched {
+.sptcl-js-hide-watched {
     display: none !important;
 }
 
-.spt-hide-expandable {
+.sptcl-js-hide-expandable {
     display: none !important;
 }
 
 /* Priority helpers in case YouTube uses inline styles */
-.spt-hide-length *,
-.spt-hide-views *,
-.spt-hide-shorts *,
-.spt-hide-expandable *,
-.spt-hide-watched * {
+.sptcl-js-hide-length *,
+.sptcl-js-hide-views *,
+.sptcl-js-hide-shorts *,
+.sptcl-js-hide-expandable *,
+.sptcl-js-hide-watched * {
     visibility: hidden !important;
 }

@@ -14,6 +14,14 @@ const SELECTOR_VIDEO_METADATA = 'yt-content-metadata-view-model span';
 const SELECTOR_SHORTS_SECTION = 'ytd-rich-shelf-renderer[is-shorts]';
 const SELECTOR_EXPANDABLE_SECTION = 'ytd-rich-shelf-renderer[has-expansion-button]';
 
+const CLASS_JS_FADE_LENGTH = 'sptcl-js-fade-length';
+const CLASS_JS_HIDE_LENGTH = 'sptcl-js-hide-length';
+const CLASS_JS_FADE_VIEWS = 'sptcl-js-fade-views';
+const CLASS_JS_HIDE_VIEWS = 'sptcl-js-hide-views';
+const CLASS_JS_HIDE_SHORTS = 'sptcl-js-hide-shorts';
+const CLASS_JS_HIDE_WATCHED = 'sptcl-js-hide-watched';
+const CLASS_JS_HIDE_EXPANDABLE = 'sptcl-js-hide-expandable';
+
 /**
  * Main
  */
@@ -57,9 +65,9 @@ chrome.storage.sync.get(
                 const progressBar = video.querySelector(SELECTOR_WATCHED_PROGRESS);
 
                 if (doHideWatched && progressBar) {
-                    video.classList.add('spt-hide-watched');
+                    video.classList.add(CLASS_JS_HIDE_WATCHED);
                 } else {
-                    video.classList.remove('spt-hide-watched');
+                    video.classList.remove(CLASS_JS_HIDE_WATCHED);
                 }
             });
         };
@@ -70,9 +78,9 @@ chrome.storage.sync.get(
 
             shortsSections.forEach((shorts) => {
                 if (doHideShorts) {
-                    shorts.classList.add('spt-hide-shorts');
+                    shorts.classList.add(CLASS_JS_HIDE_SHORTS);
                 } else {
-                    shorts.classList.remove('spt-hide-shorts');
+                    shorts.classList.remove(CLASS_JS_HIDE_SHORTS);
                 }
             });
         };
@@ -83,9 +91,9 @@ chrome.storage.sync.get(
 
             expandableSections.forEach((section) => {
                 if (doHideExpandableSections) {
-                    section.classList.add('spt-hide-expandable');
+                    section.classList.add(CLASS_JS_HIDE_EXPANDABLE);
                 } else {
-                    section.classList.remove('spt-hide-expandable');
+                    section.classList.remove(CLASS_JS_HIDE_EXPANDABLE);
                 }
             });
         };
@@ -122,21 +130,21 @@ chrome.storage.sync.get(
                 if (videoLengthMode === 'hide') {
                     // Hide elements outside the range, show otherwise
                     if (outOfRange) {
-                        video.classList.add('spt-hide-length');
+                        video.classList.add(CLASS_JS_HIDE_LENGTH);
                     } else {
-                        video.classList.remove('spt-hide-length');
+                        video.classList.remove(CLASS_JS_HIDE_LENGTH);
                     }
 
-                    video.classList.remove('spt-fade-length');
+                    video.classList.remove(CLASS_JS_FADE_LENGTH);
                 } else {
                     // Default to fade behavior
                     if (outOfRange) {
-                        video.classList.add('spt-fade-length');
+                        video.classList.add(CLASS_JS_FADE_LENGTH);
                     } else {
-                        video.classList.remove('spt-fade-length');
+                        video.classList.remove(CLASS_JS_FADE_LENGTH);
                     }
 
-                    video.classList.remove('spt-hide-length');
+                    video.classList.remove(CLASS_JS_HIDE_LENGTH);
                 }
             });
         };
@@ -151,7 +159,7 @@ chrome.storage.sync.get(
             };
 
             // Normalize the text by removing whitespace and converting to lowercase
-            const normalized = text.replace(/\s+/g, '').toLowerCase();
+            const normalized = text.replaceAll(/\s+/g, '').toLowerCase();
             // Match the numeric part and the optional suffix (k, m, b)
             const match = normalized.match(/(\d+(?:[.,]\d+)?)([kmb])?/);
 
@@ -164,7 +172,7 @@ chrome.storage.sync.get(
             // Otherwise treat comma as decimal separator for locale formats like 1,2M.
             const numericText =
                 rawNumber.includes('.') && rawNumber.includes(',')
-                    ? rawNumber.replace(/,/g, '')
+                    ? rawNumber.replaceAll(',', '')
                     : rawNumber.replace(',', '.');
 
             const value = Number(numericText);
@@ -212,18 +220,18 @@ chrome.storage.sync.get(
                 // Logic to either hide or fade the video based on the mode
                 if (videoViewsMode === 'hide') {
                     if (outOfRange) {
-                        video.classList.add('spt-hide-views');
+                        video.classList.add(CLASS_JS_HIDE_VIEWS);
                     } else {
-                        video.classList.remove('spt-hide-views');
+                        video.classList.remove(CLASS_JS_HIDE_VIEWS);
                     }
-                    video.classList.remove('spt-fade-views');
+                    video.classList.remove(CLASS_JS_FADE_VIEWS);
                 } else {
                     if (outOfRange) {
-                        video.classList.add('spt-fade-views');
+                        video.classList.add(CLASS_JS_FADE_VIEWS);
                     } else {
-                        video.classList.remove('spt-fade-views');
+                        video.classList.remove(CLASS_JS_FADE_VIEWS);
                     }
-                    video.classList.remove('spt-hide-views');
+                    video.classList.remove(CLASS_JS_HIDE_VIEWS);
                 }
             });
         };

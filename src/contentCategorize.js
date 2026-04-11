@@ -18,21 +18,23 @@ const YTB_SELECTOR_SUBSCRIPTION_RENDERER = 'ytd-rich-item-renderer:not(:is(ytd-r
 // Youtube channel name selectors
 const SELECTOR_CHANNEL_LINK = '#main-link.channel-link';
 const SELECTOR_CHANNEL_NAME_LINK = 'a.yt-core-attributed-string__link';
+const SELECTOR_CHANNEL_ACTIONS_CONTAINER = '#buttons';
 
 // SimpleTube Dropdown category
 const CATEGORY_DD_DEFAULT = 'Category';
-const CLASS_CATEGORY_SELECT = 'sptcl-category-select';
-const CLASS_CATEGORY_OPTION = 'sptcl-category-option';
+const CLASS_JS_CATEGORY_SELECT = 'sptcl-js-category-select';
+const CLASS_JS_CATEGORY_OPTION = 'sptcl-js-category-option';
 
 // SimpleTube Filter
 const CATEGORY_ALL = 'All';
 const CATEGORY_NOT_ASSIGNED = 'Not Assigned';
 
-const CLASS_FILTER_CONTAINER_CHANNEL = 'sptcl-channel-filter-container';
-const CLASS_FILTER_CONTAINER_SUBSCRIPTION = 'sptcl-subscription-filter-container';
-const CLASS_FILTER_BUTTON = 'sptcl-filter-button';
+const CLASS_JS_FILTER_CONTAINER_CHANNEL = 'sptcl-js-channel-filter-container';
+const CLASS_JS_FILTER_CONTAINER_SUBSCRIPTION = 'sptcl-js-subscription-filter-container';
+const CLASS_JS_FILTER_BUTTON = 'sptcl-js-filter-button';
+const CLASS_JS_HIDE_FILTERED = 'sptcl-js-hide-filtered';
 
-const SELECTOR_FILTER_BUTTON = '.sptcl-filter-button';
+const SELECTOR_FILTER_BUTTON = '.sptcl-js-filter-button';
 
 /**
  * Helper Functions
@@ -43,10 +45,10 @@ const warnMissingSelector = (selector, context) => {
     if (warningCounter > 5) return; // prevent spamming the console with warnings
     warningCounter++;
 
-    if (!context) {
-        console.log(`[SimpleTube] Selector "${selector}" not found.`);
-    } else {
+    if (context) {
         console.log(`[SimpleTube] Selector "${selector}" not found.`, JSON.stringify(context));
+    } else {
+        console.log(`[SimpleTube] Selector "${selector}" not found.`);
     }
 };
 
@@ -74,12 +76,12 @@ function renderButtonsFilters(filterContainer, categoriesList) {
     categoriesList.forEach(({ id, name }) => {
         const filterButton = document.createElement('span');
         filterButton.textContent = name;
-        filterButton.setAttribute('data-category-id', id);
-        filterButton.classList.add(CLASS_FILTER_BUTTON);
+        filterButton.dataset.categoryId = id;
+        filterButton.classList.add(CLASS_JS_FILTER_BUTTON);
 
         // Set the default filter to "All" when the page is loaded
         if (name === CATEGORY_ALL) {
-            filterButton.setAttribute('data-active', 'true');
+            filterButton.dataset.active = 'true';
         }
 
         filterButton.addEventListener('click', () => {
@@ -89,10 +91,10 @@ function renderButtonsFilters(filterContainer, categoriesList) {
                 warnMissingSelector(SELECTOR_FILTER_BUTTON, filterContainer);
             }
             btns.forEach((btn) => {
-                btn.removeAttribute('data-active');
+                delete btn.dataset.active;
             });
 
-            filterButton.setAttribute('data-active', 'true');
+            filterButton.dataset.active = 'true';
         });
 
         filterContainer.appendChild(filterButton);
@@ -116,9 +118,9 @@ function applyFilterToContent(contentList, selectedCategoryId, channelCategoryAs
         }
 
         if (shouldShow) {
-            block.classList.remove('spt-hide-filtered');
+            block.classList.remove(CLASS_JS_HIDE_FILTERED);
         } else {
-            block.classList.add('spt-hide-filtered');
+            block.classList.add(CLASS_JS_HIDE_FILTERED);
         }
     });
 }
@@ -126,7 +128,7 @@ function applyFilterToContent(contentList, selectedCategoryId, channelCategoryAs
 // Apply the default "All" filter to the content
 function applyDefaultFilter(contentList) {
     contentList.forEach((block) => {
-        block.classList.remove('spt-hide-filtered');
+        block.classList.remove(CLASS_JS_HIDE_FILTERED);
     });
 }
 
@@ -153,7 +155,7 @@ function observeSubscriptionsPage(subscriptionsPageContainer, channelCategoryAss
             if (!contentList.length) {
                 warnMissingSelector(YTB_SELECTOR_SUBSCRIPTION_RENDERER, subscriptionsPageContainer);
             }
-            const category = activeFilterButton.getAttribute('data-category-id');
+            const category = activeFilterButton.dataset.categoryId;
             const forChannelPage = false;
 
             if (category === CATEGORY_ALL) {
@@ -195,16 +197,16 @@ chrome.storage.sync.get(
             // Add a dropdown for each channel to select categories
             channelBlocks.forEach((channelBlockEl) => {
                 // Get DOM elements
-                const actionsContainer = channelBlockEl.querySelector('#buttons');
+                const actionsContainer = channelBlockEl.querySelector(SELECTOR_CHANNEL_ACTIONS_CONTAINER);
 
                 // Warn and skip this channel block if we can't find the actions container
                 if (!actionsContainer) {
-                    warnMissingSelector('#buttons', channelBlockEl);
+                    warnMissingSelector(SELECTOR_CHANNEL_ACTIONS_CONTAINER, channelBlockEl);
                     return; // skip this channel block
                 }
 
                 // If the dropdown already exists, skip
-                const existingDropdowns = actionsContainer.querySelectorAll(`.${CLASS_CATEGORY_SELECT}`);
+                const existingDropdowns = actionsContainer.querySelectorAll(`.${CLASS_JS_CATEGORY_SELECT}`);
                 // don't warn here — absence of dropdowns is expected for new blocks
                 if (existingDropdowns.length > 0) return;
 
@@ -213,12 +215,12 @@ chrome.storage.sync.get(
 
                 // Create the category dropdown
                 const dropdown = document.createElement('select');
-                dropdown.classList.add(CLASS_CATEGORY_SELECT);
+                dropdown.classList.add(CLASS_JS_CATEGORY_SELECT);
 
                 // Create a default option
                 const defaultOption = document.createElement('option');
                 defaultOption.text = CATEGORY_DD_DEFAULT;
-                defaultOption.classList.add(CLASS_CATEGORY_OPTION);
+                defaultOption.classList.add(CLASS_JS_CATEGORY_OPTION);
 
                 dropdown.appendChild(defaultOption);
 
@@ -227,7 +229,7 @@ chrome.storage.sync.get(
                     const option = document.createElement('option');
                     option.text = name;
                     option.value = id;
-                    option.classList.add(CLASS_CATEGORY_OPTION);
+                    option.classList.add(CLASS_JS_CATEGORY_OPTION);
 
                     // Set the selected option if the category is already assigned
                     if (channelCategoryAssigned[channelName] === id) {
@@ -267,10 +269,10 @@ chrome.storage.sync.get(
             }
 
             // If filters do not exist, do create them...
-            if (!channelPageContainer.querySelectorAll(`.${CLASS_FILTER_CONTAINER_CHANNEL}`).length) {
+            if (!channelPageContainer.querySelectorAll(`.${CLASS_JS_FILTER_CONTAINER_CHANNEL}`).length) {
                 // Create the filters container
                 const filterContainer = document.createElement('div');
-                filterContainer.classList.add(CLASS_FILTER_CONTAINER_CHANNEL);
+                filterContainer.classList.add(CLASS_JS_FILTER_CONTAINER_CHANNEL);
 
                 // Create filter buttons
                 renderButtonsFilters(filterContainer, [
@@ -296,7 +298,7 @@ chrome.storage.sync.get(
                     if (!contentList.length) {
                         warnMissingSelector(YTB_SELECTOR_CHANNEL_RENDERER, channelPageContainer);
                     }
-                    const categoryId = filterButton.getAttribute('data-category-id');
+                    const categoryId = filterButton.dataset.categoryId;
                     const forChannelPage = true;
 
                     if (categoryId === CATEGORY_ALL) {
@@ -323,10 +325,10 @@ chrome.storage.sync.get(
             }
 
             // If filters do not exist, do create them...
-            if (!subscriptionsPageContainer.querySelectorAll(`.${CLASS_FILTER_CONTAINER_SUBSCRIPTION}`).length) {
+            if (!subscriptionsPageContainer.querySelectorAll(`.${CLASS_JS_FILTER_CONTAINER_SUBSCRIPTION}`).length) {
                 // Create the filters container
                 const filterContainer = document.createElement('div');
-                filterContainer.classList.add(CLASS_FILTER_CONTAINER_SUBSCRIPTION);
+                filterContainer.classList.add(CLASS_JS_FILTER_CONTAINER_SUBSCRIPTION);
 
                 // Create filter buttons
                 const assignedCategories = getAssignedCategories(categories, channelCategoryAssigned);
@@ -352,7 +354,7 @@ chrome.storage.sync.get(
                     if (!contentList.length) {
                         warnMissingSelector(YTB_SELECTOR_SUBSCRIPTION_RENDERER, subscriptionsPageContainer);
                     }
-                    const categoryId = filterButton.getAttribute('data-category-id');
+                    const categoryId = filterButton.dataset.categoryId;
                     const forChannelPage = false;
 
                     if (categoryId === CATEGORY_ALL) {
@@ -374,12 +376,12 @@ chrome.storage.sync.get(
         // Initial run and reactive updates using MutationObserver
         if (doCategorizeSubscription) {
             const runOnce = () => {
-                if (window.location.pathname === '/feed/channels') {
+                if (globalThis.location.pathname === '/feed/channels') {
                     renderChannelsPageCategoryDropdown();
                     renderChannelsPageFilters();
                 }
 
-                if (window.location.pathname === '/feed/subscriptions') {
+                if (globalThis.location.pathname === '/feed/subscriptions') {
                     renderSubscriptionsPageFilters();
                 }
             };

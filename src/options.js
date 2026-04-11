@@ -4,42 +4,96 @@
  */
 
 /**
+ * Constants
+ */
+
+const DOM_ID_HIDE_SHORTS = 'sptid-do-hide-shorts';
+const DOM_ID_HIDE_WATCHED = 'sptid-do-hide-watched';
+const DOM_ID_HIDE_SUBSCRIPTIONS_EXPANDABLE = 'sptid-do-hide-subscriptions-expandable-sections';
+const DOM_ID_FADE_BY_LENGTH = 'sptid-do-fade-by-length';
+const DOM_ID_VIDEO_LENGTH_GROUP = 'sptid-video-length-group';
+const DOM_ID_VIDEO_LENGTH_MIN = 'sptid-video-length-min';
+const DOM_ID_VIDEO_LENGTH_MAX = 'sptid-video-length-max';
+const DOM_ID_VIDEO_LENGTH_MODE = 'sptid-video-length-mode';
+const DOM_ID_FILTER_BY_VIEWS = 'sptid-do-filter-by-views';
+const DOM_ID_VIDEO_VIEWS_GROUP = 'sptid-video-views-group';
+const DOM_ID_VIDEO_VIEWS_MIN = 'sptid-video-views-min';
+const DOM_ID_VIDEO_VIEWS_MAX = 'sptid-video-views-max';
+const DOM_ID_VIDEO_VIEWS_MODE = 'sptid-video-views-mode';
+const DOM_ID_CATEGORIZE_SUBSCRIPTION = 'sptid-do-categorize-subscription';
+const DOM_ID_CATEGORY_NAME = 'sptid-category-name';
+const DOM_ID_CATEGORY_ADD = 'sptid-category-add';
+const DOM_ID_CATEGORIES_LIST = 'sptid-categories-list';
+const DOM_ID_SETTINGS_RESET = 'sptid-settings-reset';
+const DOM_ID_ALERT_MESSAGE = 'sptid-alert-message';
+const DOM_ID_VERSION = 'sptid-version';
+
+const CLASS_JS_STATE_DISABLED = 'sptcl-js-is-disabled';
+const CLASS_JS_STATE_ERROR = 'sptcl-js-error';
+const CLASS_JS_STATE_SUCCESS = 'sptcl-js-success';
+const CLASS_JS_EMPTY_ITEM = 'sptcl-js-empty-item';
+const CLASS_JS_CATEGORY_ACTIONS = 'sptcl-js-category-actions';
+const CLASS_JS_CATEGORY_BUTTON = 'sptcl-js-form-button-category';
+
+const STORAGE_KEY_CHANNEL_CATEGORY_ASSIGNED = 'channelCategoryAssigned';
+const STORAGE_KEY_CATEGORIES = 'categories';
+
+const STORAGE_SETTINGS_KEYS = [
+    'doHideShorts',
+    'doHideWatched',
+    'doHideExpandableSections',
+    'doFadeByLength',
+    'videoLengthMax',
+    'videoLengthMin',
+    'doCategorizeSubscription',
+    'videoLengthMode',
+    'doFilterByViews',
+    'videoViewsMin',
+    'videoViewsMax',
+    'videoViewsMode',
+];
+
+/**
  * Helper Functions
  */
 
-function updateOptionGroupsState() {
-    const lengthEnabled = document.getElementById('sptid-do-fade-by-length').checked;
-    const viewsEnabled = document.getElementById('sptid-do-filter-by-views').checked;
+function getElementById(elementId) {
+    return document.getElementById(elementId);
+}
 
-    const lengthGroup = document.getElementById('sptid-video-length-group');
-    const viewsGroup = document.getElementById('sptid-video-views-group');
+function updateOptionGroupsState() {
+    const lengthEnabled = getElementById(DOM_ID_FADE_BY_LENGTH).checked;
+    const viewsEnabled = getElementById(DOM_ID_FILTER_BY_VIEWS).checked;
+
+    const lengthGroup = getElementById(DOM_ID_VIDEO_LENGTH_GROUP);
+    const viewsGroup = getElementById(DOM_ID_VIDEO_VIEWS_GROUP);
 
     [
-        document.getElementById('sptid-video-length-min'),
-        document.getElementById('sptid-video-length-max'),
-        document.getElementById('sptid-video-length-mode'),
+        getElementById(DOM_ID_VIDEO_LENGTH_MIN),
+        getElementById(DOM_ID_VIDEO_LENGTH_MAX),
+        getElementById(DOM_ID_VIDEO_LENGTH_MODE),
     ].forEach((element) => {
         element.disabled = !lengthEnabled;
     });
 
     [
-        document.getElementById('sptid-video-views-min'),
-        document.getElementById('sptid-video-views-max'),
-        document.getElementById('sptid-video-views-mode'),
+        getElementById(DOM_ID_VIDEO_VIEWS_MIN),
+        getElementById(DOM_ID_VIDEO_VIEWS_MAX),
+        getElementById(DOM_ID_VIDEO_VIEWS_MODE),
     ].forEach((element) => {
         element.disabled = !viewsEnabled;
     });
 
-    lengthGroup.classList.toggle('sptcl-js-is-disabled', !lengthEnabled);
-    viewsGroup.classList.toggle('sptcl-js-is-disabled', !viewsEnabled);
+    lengthGroup.classList.toggle(CLASS_JS_STATE_DISABLED, !lengthEnabled);
+    viewsGroup.classList.toggle(CLASS_JS_STATE_DISABLED, !viewsEnabled);
 }
 
 function renderAlertMessage(message, error = false) {
-    const messageElement = document.getElementById('sptid-alert-message');
-    messageElement.classList.remove('sptcl-js-error', 'sptcl-js-success');
+    const messageElement = getElementById(DOM_ID_ALERT_MESSAGE);
+    messageElement.classList.remove(CLASS_JS_STATE_ERROR, CLASS_JS_STATE_SUCCESS);
 
     messageElement.textContent = message;
-    messageElement.classList.add(error ? 'sptcl-js-error' : 'sptcl-js-success');
+    messageElement.classList.add(error ? CLASS_JS_STATE_ERROR : CLASS_JS_STATE_SUCCESS);
 
     // Clear any existing timeout to handle quick clicks
     if (renderAlertMessage.timeoutId) {
@@ -48,13 +102,13 @@ function renderAlertMessage(message, error = false) {
 
     // Hide the message after 5 seconds
     renderAlertMessage.timeoutId = setTimeout(() => {
-        messageElement.classList.remove('sptcl-js-error', 'sptcl-js-success');
+        messageElement.classList.remove(CLASS_JS_STATE_ERROR, CLASS_JS_STATE_SUCCESS);
         messageElement.textContent = '';
     }, 5000);
 }
 
 function renderListCategories(categories = []) {
-    const categoriesList = document.getElementById('sptid-categories-list');
+    const categoriesList = getElementById(DOM_ID_CATEGORIES_LIST);
     categoriesList.innerHTML = '';
 
     // Sort categories alphabetically by name
@@ -64,7 +118,7 @@ function renderListCategories(categories = []) {
     if (categories.length === 0) {
         const emptyLiElement = document.createElement('li');
         emptyLiElement.textContent = 'No categories added yet!';
-        emptyLiElement.classList.add('sptcl-js-empty-item');
+        emptyLiElement.classList.add(CLASS_JS_EMPTY_ITEM);
 
         categoriesList.appendChild(emptyLiElement);
         return;
@@ -81,16 +135,16 @@ function renderListCategories(categories = []) {
 
         // Create div to hold the action buttons
         const actionsDiv = document.createElement('div');
-        actionsDiv.classList.add('sptcl-js-category-actions');
+        actionsDiv.classList.add(CLASS_JS_CATEGORY_ACTIONS);
 
         // Create delete button for each category
         const deleteButton = document.createElement('button');
         deleteButton.textContent = 'delete';
-        deleteButton.classList.add('sptcl-js-form-button-category');
+        deleteButton.classList.add(CLASS_JS_CATEGORY_BUTTON);
 
         deleteButton.addEventListener('click', () => {
             // Remove the associated category from all subscriptions
-            chrome.storage.sync.get(['channelCategoryAssigned'], ({ channelCategoryAssigned }) => {
+            chrome.storage.sync.get([STORAGE_KEY_CHANNEL_CATEGORY_ASSIGNED], ({ channelCategoryAssigned }) => {
                 Object.keys(channelCategoryAssigned).forEach((channel) => {
                     if (channelCategoryAssigned[channel] === id) {
                         delete channelCategoryAssigned[channel];
@@ -101,7 +155,7 @@ function renderListCategories(categories = []) {
             });
 
             // Remove the category from the list
-            chrome.storage.sync.get(['categories'], ({ categories = [] }) => {
+            chrome.storage.sync.get([STORAGE_KEY_CATEGORIES], ({ categories = [] }) => {
                 const newCategories = categories.filter((c) => c.id !== id);
 
                 chrome.storage.sync.set({ categories: newCategories }, () => {
@@ -114,13 +168,13 @@ function renderListCategories(categories = []) {
         // Create rename button for each category
         const renameButton = document.createElement('button');
         renameButton.textContent = 'rename';
-        renameButton.classList.add('sptcl-js-form-button-category');
+        renameButton.classList.add(CLASS_JS_CATEGORY_BUTTON);
 
         renameButton.addEventListener('click', () => {
             const newName = prompt('Enter new name for the category:', name);
 
             if (newName && newName.trim() !== '' && newName.trim() !== name) {
-                chrome.storage.sync.get(['categories'], ({ categories = [] }) => {
+                chrome.storage.sync.get([STORAGE_KEY_CATEGORIES], ({ categories = [] }) => {
                     if (categories.some((category) => category.name === newName.trim())) {
                         renderAlertMessage(`Category "${newName.trim()}" already exists!`, true);
                         return;
@@ -156,24 +210,24 @@ function renderListCategories(categories = []) {
  */
 
 // General options
-document.getElementById('sptid-do-hide-shorts').addEventListener('click', () => {
-    const hideShorts = document.getElementById('sptid-do-hide-shorts').checked;
+getElementById(DOM_ID_HIDE_SHORTS).addEventListener('click', () => {
+    const hideShorts = getElementById(DOM_ID_HIDE_SHORTS).checked;
 
     chrome.storage.sync.set({ doHideShorts: hideShorts }, () => {
         renderAlertMessage(`Short videos ${hideShorts ? 'hidden' : 'shown'} successfully!`);
     });
 });
 
-document.getElementById('sptid-do-hide-watched').addEventListener('click', () => {
-    const hideWatched = document.getElementById('sptid-do-hide-watched').checked;
+getElementById(DOM_ID_HIDE_WATCHED).addEventListener('click', () => {
+    const hideWatched = getElementById(DOM_ID_HIDE_WATCHED).checked;
 
     chrome.storage.sync.set({ doHideWatched: hideWatched }, () => {
         renderAlertMessage(`Watched videos ${hideWatched ? 'hidden' : 'shown'} successfully!`);
     });
 });
 
-document.getElementById('sptid-do-hide-subscriptions-expandable-sections').addEventListener('click', () => {
-    const hideExpandableSections = document.getElementById('sptid-do-hide-subscriptions-expandable-sections').checked;
+getElementById(DOM_ID_HIDE_SUBSCRIPTIONS_EXPANDABLE).addEventListener('click', () => {
+    const hideExpandableSections = getElementById(DOM_ID_HIDE_SUBSCRIPTIONS_EXPANDABLE).checked;
 
     chrome.storage.sync.set({ doHideExpandableSections: hideExpandableSections }, () => {
         renderAlertMessage(`Expandable sections ${hideExpandableSections ? 'hidden' : 'shown'} successfully!`);
@@ -181,8 +235,8 @@ document.getElementById('sptid-do-hide-subscriptions-expandable-sections').addEv
 });
 
 // Fade by length
-document.getElementById('sptid-do-fade-by-length').addEventListener('click', () => {
-    const fadeByLength = document.getElementById('sptid-do-fade-by-length').checked;
+getElementById(DOM_ID_FADE_BY_LENGTH).addEventListener('click', () => {
+    const fadeByLength = getElementById(DOM_ID_FADE_BY_LENGTH).checked;
 
     chrome.storage.sync.set({ doFadeByLength: fadeByLength }, () => {
         updateOptionGroupsState();
@@ -191,34 +245,32 @@ document.getElementById('sptid-do-fade-by-length').addEventListener('click', () 
     });
 });
 
-[document.getElementById('sptid-video-length-min'), document.getElementById('sptid-video-length-max')].forEach(
-    (element) => {
-        element.addEventListener('change', () => {
-            const videoLengthMin = Number.parseInt(document.getElementById('sptid-video-length-min').value, 10);
-            const videoLengthMax = Number.parseInt(document.getElementById('sptid-video-length-max').value, 10);
+[getElementById(DOM_ID_VIDEO_LENGTH_MIN), getElementById(DOM_ID_VIDEO_LENGTH_MAX)].forEach((element) => {
+    element.addEventListener('change', () => {
+        const videoLengthMin = Number.parseInt(getElementById(DOM_ID_VIDEO_LENGTH_MIN).value, 10);
+        const videoLengthMax = Number.parseInt(getElementById(DOM_ID_VIDEO_LENGTH_MAX).value, 10);
 
-            if (videoLengthMin >= videoLengthMax) {
-                renderAlertMessage('Minimum should be less than maximum!', true);
-                return;
+        if (videoLengthMin >= videoLengthMax) {
+            renderAlertMessage('Minimum should be less than maximum!', true);
+            return;
+        }
+
+        // Save the settings to Chrome's storage
+        chrome.storage.sync.set(
+            {
+                videoLengthMax: videoLengthMax,
+                videoLengthMin: videoLengthMin,
+            },
+            () => {
+                renderAlertMessage('Video length settings updated successfully!');
             }
-
-            // Save the settings to Chrome's storage
-            chrome.storage.sync.set(
-                {
-                    videoLengthMax: videoLengthMax,
-                    videoLengthMin: videoLengthMin,
-                },
-                () => {
-                    renderAlertMessage('Video length settings updated successfully!');
-                }
-            );
-        });
-    }
-);
+        );
+    });
+});
 
 // Video length mode (fade or hide)
-document.getElementById('sptid-video-length-mode').addEventListener('change', () => {
-    const mode = document.getElementById('sptid-video-length-mode').value;
+getElementById(DOM_ID_VIDEO_LENGTH_MODE).addEventListener('change', () => {
+    const mode = getElementById(DOM_ID_VIDEO_LENGTH_MODE).value;
 
     chrome.storage.sync.set({ videoLengthMode: mode }, () => {
         renderAlertMessage(`Video length mode set to "${mode}" successfully!`);
@@ -226,8 +278,8 @@ document.getElementById('sptid-video-length-mode').addEventListener('change', ()
 });
 
 // Filter by views
-document.getElementById('sptid-do-filter-by-views').addEventListener('click', () => {
-    const filterByViews = document.getElementById('sptid-do-filter-by-views').checked;
+getElementById(DOM_ID_FILTER_BY_VIEWS).addEventListener('click', () => {
+    const filterByViews = getElementById(DOM_ID_FILTER_BY_VIEWS).checked;
 
     chrome.storage.sync.set({ doFilterByViews: filterByViews }, () => {
         updateOptionGroupsState();
@@ -236,33 +288,31 @@ document.getElementById('sptid-do-filter-by-views').addEventListener('click', ()
     });
 });
 
-[document.getElementById('sptid-video-views-min'), document.getElementById('sptid-video-views-max')].forEach(
-    (element) => {
-        element.addEventListener('change', () => {
-            const videoViewsMin = Number.parseInt(document.getElementById('sptid-video-views-min').value, 10);
-            const videoViewsMax = Number.parseInt(document.getElementById('sptid-video-views-max').value, 10);
+[getElementById(DOM_ID_VIDEO_VIEWS_MIN), getElementById(DOM_ID_VIDEO_VIEWS_MAX)].forEach((element) => {
+    element.addEventListener('change', () => {
+        const videoViewsMin = Number.parseInt(getElementById(DOM_ID_VIDEO_VIEWS_MIN).value, 10);
+        const videoViewsMax = Number.parseInt(getElementById(DOM_ID_VIDEO_VIEWS_MAX).value, 10);
 
-            if (videoViewsMin >= videoViewsMax) {
-                renderAlertMessage('Minimum views should be less than maximum views!', true);
-                return;
+        if (videoViewsMin >= videoViewsMax) {
+            renderAlertMessage('Minimum views should be less than maximum views!', true);
+            return;
+        }
+
+        chrome.storage.sync.set(
+            {
+                videoViewsMax: videoViewsMax,
+                videoViewsMin: videoViewsMin,
+            },
+            () => {
+                renderAlertMessage('Video views settings updated successfully!');
             }
-
-            chrome.storage.sync.set(
-                {
-                    videoViewsMax: videoViewsMax,
-                    videoViewsMin: videoViewsMin,
-                },
-                () => {
-                    renderAlertMessage('Video views settings updated successfully!');
-                }
-            );
-        });
-    }
-);
+        );
+    });
+});
 
 // Video views mode (fade or hide)
-document.getElementById('sptid-video-views-mode').addEventListener('change', () => {
-    const mode = document.getElementById('sptid-video-views-mode').value;
+getElementById(DOM_ID_VIDEO_VIEWS_MODE).addEventListener('change', () => {
+    const mode = getElementById(DOM_ID_VIDEO_VIEWS_MODE).value;
 
     chrome.storage.sync.set({ videoViewsMode: mode }, () => {
         renderAlertMessage(`Video views mode set to "${mode}" successfully!`);
@@ -270,19 +320,19 @@ document.getElementById('sptid-video-views-mode').addEventListener('change', () 
 });
 
 // Categorize subscriptions
-document.getElementById('sptid-do-categorize-subscription').addEventListener('click', () => {
-    const categorizeSubscription = document.getElementById('sptid-do-categorize-subscription').checked;
+getElementById(DOM_ID_CATEGORIZE_SUBSCRIPTION).addEventListener('click', () => {
+    const categorizeSubscription = getElementById(DOM_ID_CATEGORIZE_SUBSCRIPTION).checked;
 
     chrome.storage.sync.set({ doCategorizeSubscription: categorizeSubscription }, () => {
         renderAlertMessage(`Categorize subscriptions ${categorizeSubscription ? 'enabled' : 'disabled'} successfully!`);
     });
 });
 
-document.getElementById('sptid-category-add').addEventListener('click', () => {
-    const categoryName = document.getElementById('sptid-category-name').value.trim();
+getElementById(DOM_ID_CATEGORY_ADD).addEventListener('click', () => {
+    const categoryName = getElementById(DOM_ID_CATEGORY_NAME).value.trim();
 
     if (categoryName) {
-        chrome.storage.sync.get(['categories'], ({ categories = [] }) => {
+        chrome.storage.sync.get([STORAGE_KEY_CATEGORIES], ({ categories = [] }) => {
             if (categories.some((category) => category.name === categoryName)) {
                 renderAlertMessage(`Category "${categoryName}" already exists!`, true);
                 return;
@@ -290,7 +340,7 @@ document.getElementById('sptid-category-add').addEventListener('click', () => {
 
             const newCategory = { id: Date.now().toString(), name: categoryName };
             categories.push(newCategory);
-            document.getElementById('sptid-category-name').value = '';
+            getElementById(DOM_ID_CATEGORY_NAME).value = '';
 
             // Sort categories alphabetically by name
             const sortedCategories = [...categories].sort((a, b) => a.name.localeCompare(b.name));
@@ -304,23 +354,23 @@ document.getElementById('sptid-category-add').addEventListener('click', () => {
 });
 
 // Reset the settings to the default values
-document.getElementById('sptid-settings-reset').addEventListener('click', () => {
+getElementById(DOM_ID_SETTINGS_RESET).addEventListener('click', () => {
     // Reset the settings to the default values
-    document.getElementById('sptid-do-hide-watched').checked = false;
-    document.getElementById('sptid-do-hide-shorts').checked = false;
-    document.getElementById('sptid-do-hide-subscriptions-expandable-sections').checked = false;
+    getElementById(DOM_ID_HIDE_WATCHED).checked = false;
+    getElementById(DOM_ID_HIDE_SHORTS).checked = false;
+    getElementById(DOM_ID_HIDE_SUBSCRIPTIONS_EXPANDABLE).checked = false;
 
-    document.getElementById('sptid-do-fade-by-length').checked = true;
-    document.getElementById('sptid-video-length-min').value = 0;
-    document.getElementById('sptid-video-length-max').value = 30;
-    document.getElementById('sptid-video-length-mode').value = 'fade';
+    getElementById(DOM_ID_FADE_BY_LENGTH).checked = true;
+    getElementById(DOM_ID_VIDEO_LENGTH_MIN).value = 0;
+    getElementById(DOM_ID_VIDEO_LENGTH_MAX).value = 30;
+    getElementById(DOM_ID_VIDEO_LENGTH_MODE).value = 'fade';
 
-    document.getElementById('sptid-do-filter-by-views').checked = false;
-    document.getElementById('sptid-video-views-min').value = 0;
-    document.getElementById('sptid-video-views-max').value = 1000000;
-    document.getElementById('sptid-video-views-mode').value = 'fade';
+    getElementById(DOM_ID_FILTER_BY_VIEWS).checked = false;
+    getElementById(DOM_ID_VIDEO_VIEWS_MIN).value = 0;
+    getElementById(DOM_ID_VIDEO_VIEWS_MAX).value = 1000000;
+    getElementById(DOM_ID_VIDEO_VIEWS_MODE).value = 'fade';
 
-    document.getElementById('sptid-do-categorize-subscription').checked = true;
+    getElementById(DOM_ID_CATEGORIZE_SUBSCRIPTION).checked = true;
 
     updateOptionGroupsState();
 
@@ -357,20 +407,7 @@ document.getElementById('sptid-settings-reset').addEventListener('click', () => 
 document.addEventListener('DOMContentLoaded', () => {
     // Load the settings from Chrome's storage
     chrome.storage.sync.get(
-        [
-            'doHideShorts',
-            'doHideWatched',
-            'doHideExpandableSections',
-            'doFadeByLength',
-            'videoLengthMax',
-            'videoLengthMin',
-            'doCategorizeSubscription',
-            'videoLengthMode',
-            'doFilterByViews',
-            'videoViewsMin',
-            'videoViewsMax',
-            'videoViewsMode',
-        ],
+        STORAGE_SETTINGS_KEYS,
         ({
             doHideShorts,
             doHideWatched,
@@ -385,34 +422,33 @@ document.addEventListener('DOMContentLoaded', () => {
             videoViewsMax,
             videoViewsMode,
         }) => {
-            document.getElementById('sptid-do-hide-watched').checked = doHideWatched;
-            document.getElementById('sptid-do-hide-shorts').checked = doHideShorts;
-            document.getElementById('sptid-do-hide-subscriptions-expandable-sections').checked =
-                doHideExpandableSections;
+            getElementById(DOM_ID_HIDE_WATCHED).checked = doHideWatched;
+            getElementById(DOM_ID_HIDE_SHORTS).checked = doHideShorts;
+            getElementById(DOM_ID_HIDE_SUBSCRIPTIONS_EXPANDABLE).checked = doHideExpandableSections;
 
-            document.getElementById('sptid-do-fade-by-length').checked = doFadeByLength;
-            document.getElementById('sptid-video-length-min').value = videoLengthMin;
-            document.getElementById('sptid-video-length-max').value = videoLengthMax;
-            document.getElementById('sptid-video-length-mode').value = videoLengthMode || 'fade';
+            getElementById(DOM_ID_FADE_BY_LENGTH).checked = doFadeByLength;
+            getElementById(DOM_ID_VIDEO_LENGTH_MIN).value = videoLengthMin;
+            getElementById(DOM_ID_VIDEO_LENGTH_MAX).value = videoLengthMax;
+            getElementById(DOM_ID_VIDEO_LENGTH_MODE).value = videoLengthMode || 'fade';
 
-            document.getElementById('sptid-do-filter-by-views').checked = doFilterByViews || false;
-            document.getElementById('sptid-video-views-min').value = videoViewsMin ?? 0;
-            document.getElementById('sptid-video-views-max').value = videoViewsMax ?? 1000000;
-            document.getElementById('sptid-video-views-mode').value = videoViewsMode || 'fade';
+            getElementById(DOM_ID_FILTER_BY_VIEWS).checked = doFilterByViews || false;
+            getElementById(DOM_ID_VIDEO_VIEWS_MIN).value = videoViewsMin ?? 0;
+            getElementById(DOM_ID_VIDEO_VIEWS_MAX).value = videoViewsMax ?? 1000000;
+            getElementById(DOM_ID_VIDEO_VIEWS_MODE).value = videoViewsMode || 'fade';
 
-            document.getElementById('sptid-do-categorize-subscription').checked = doCategorizeSubscription;
+            getElementById(DOM_ID_CATEGORIZE_SUBSCRIPTION).checked = doCategorizeSubscription;
 
             updateOptionGroupsState();
         }
     );
 
     // Load the categories from Chrome's storage
-    chrome.storage.sync.get(['categories'], ({ categories = [] }) => {
+    chrome.storage.sync.get([STORAGE_KEY_CATEGORIES], ({ categories = [] }) => {
         renderListCategories(categories);
     });
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    const versionElement = document.getElementById('sptid-version');
+    const versionElement = getElementById(DOM_ID_VERSION);
     versionElement.textContent = `v${chrome.runtime.getManifest().version}`;
 });
