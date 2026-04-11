@@ -17,7 +17,7 @@ const YTB_SELECTOR_SUBSCRIPTION_RENDERER = 'ytd-rich-item-renderer:not(:is(ytd-r
 
 // Youtube channel name selectors
 const SELECTOR_CHANNEL_LINK = '#main-link.channel-link';
-const SELECTOR_CHANNEL_NAME_LINK = 'a.yt-core-attributed-string__link';
+const SELECTOR_CHANNEL_NAME_LINK = 'yt-content-metadata-view-model a.ytAttributedStringLink';
 const SELECTOR_CHANNEL_ACTIONS_CONTAINER = '#buttons';
 
 // SimpleTube Dropdown category
