@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "scripts": {
     "package": "VERSION=$(node -p \"require('./src/manifest.json').version\") && cd src && zip -r ../simpletube-v${VERSION}.zip . --exclude '*.crx' --exclude '.DS_Store'",
     "lint": "npm run lint:script && npm run lint:format",

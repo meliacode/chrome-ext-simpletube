@@ -2,6 +2,12 @@
 
 ## Versions
 
+v0.10.1:
+
+- **fix**: contentcategorize - update channel name link selector for improved channel detection accuracy on YouTube pages.
+- **chore**: content/options - refactor extension class names with consistent `sptcl-js-` prefixes and centralize options DOM/storage constants for more maintainable handling.
+- **chore**: repo - update Copilot project instructions and add an options prompt template under `.github/prompts`.
+
 v0.10.0:
 
 - **feat**: options/content - add configurable video views filter with min/max range and fade/hide mode.
