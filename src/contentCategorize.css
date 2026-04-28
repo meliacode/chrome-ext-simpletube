@@ -1,5 +1,28 @@
 /* Category Dropdown */
 
+html:root {
+    --spt-category-chip-bg: #f2f2f2;
+    --spt-category-chip-bg-hover: #e6e6e6;
+    --spt-category-chip-border: rgba(0, 0, 0, 0.12);
+    --spt-category-text-primary: #0f0f0f;
+    --spt-category-surface-base: #ffffff;
+    --spt-category-filter-bg: #f2f2f2;
+    --spt-category-filter-text: #0f0f0f;
+    --spt-category-brand-red: #f30a33;
+    --spt-category-active-text: #ffffff;
+}
+
+
+html[dark]:root {
+    --spt-category-chip-bg: #272727;
+    --spt-category-chip-bg-hover: #3a3a3a;
+    --spt-category-chip-border: rgba(255, 255, 255, 0.2);
+    --spt-category-text-primary: #f1f1f1;
+    --spt-category-surface-base: #0f0f0f;
+    --spt-category-filter-bg: #272727;
+    --spt-category-filter-text: #f1f1f1;
+}
+
 .sptcl-js-category-select {
     display: inline-block;
     position: relative;
@@ -8,14 +31,14 @@
     height: 36px;
     cursor: pointer;
     appearance: none;
-    background-color: var(--yt-spec-badge-chip-background, var(--yt-spec-additive-background, #f2f2f2));
+    background-color: var(--spt-category-chip-bg);
     background-image: url("data:image/svg+xml,<svg height='10px' width='10px' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'><path fill='currentColor' d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/></svg>");
     background-position: calc(100% - 16px) center;
     background-repeat: no-repeat;
     border-radius: 18px;
-    border: 1px solid var(--yt-spec-10-percent-layer, rgba(0, 0, 0, 0.12));
-    color: var(--yt-spec-text-primary, #0f0f0f);
-    -webkit-text-fill-color: var(--yt-spec-text-primary, #0f0f0f);
+    border: 1px solid var(--spt-category-chip-border);
+    color: var(--spt-category-text-primary);
+    -webkit-text-fill-color: var(--spt-category-text-primary);
     color-scheme: light dark;
     font-family: 'Roboto', 'Arial', sans-serif;
     font-size: 14px;
@@ -24,13 +47,13 @@
 
 .sptcl-js-category-select:active,
 .sptcl-js-category-select:hover {
-    background-color: var(--yt-spec-badge-chip-background-hover, var(--yt-spec-button-chip-background-hover));
+    background-color: var(--spt-category-chip-bg-hover);
 }
 
 .sptcl-js-category-select option,
 .sptcl-js-category-select option:hover {
-    background-color: var(--yt-spec-base-background, #ffffff);
-    color: var(--yt-spec-text-primary, #0f0f0f);
+    background-color: var(--spt-category-surface-base);
+    color: var(--spt-category-text-primary);
 }
 
 /* Category Filter Buttons */
@@ -51,18 +74,18 @@
     margin: 0px calc(16px / 4);
     padding: 8px 16px;
     cursor: pointer;
-    background-color: var(--yt-spec-additive-background);
+    background-color: var(--spt-category-filter-bg);
     border-radius: 8px;
     border: none;
-    color: var(--yt-spec-inverted-background);
+    color: var(--spt-category-filter-text);
     font-family: 'Roboto', 'Arial', sans-serif;
     font-size: 14px;
     font-weight: 500;
 }
 
 .sptcl-js-filter-button[data-active] {
-    background-color: var(--yt-spec-static-brand-red);
-    color: var(--yt-spec-base-background);
+    background-color: var(--spt-category-brand-red);
+    color: var(--spt-category-active-text);
 }
 
 /* Styles to reduce layout thrashing */
@@ -72,4 +95,5 @@
 }
 .sptcl-js-hide-filtered * {
     visibility: hidden !important;
+}
 }
