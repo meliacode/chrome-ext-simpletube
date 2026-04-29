@@ -7,10 +7,17 @@
  * Constants
  */
 
-const SELECTOR_VIDEO_ITEM = 'ytd-rich-item-renderer';
+const SELECTOR_VIDEO_ITEM = [
+    'ytd-rich-item-renderer',
+    'ytd-video-renderer[is-search]',
+    'ytd-item-section-renderer ytd-video-renderer',
+].join(', ');
 const SELECTOR_WATCHED_PROGRESS = 'yt-thumbnail-overlay-progress-bar-view-model';
-const SELECTOR_VIDEO_DURATION = 'yt-thumbnail-badge-view-model badge-shape div';
-const SELECTOR_VIDEO_METADATA = 'yt-content-metadata-view-model span';
+const SELECTOR_VIDEO_DURATION = [
+    'yt-thumbnail-badge-view-model badge-shape div',
+    'ytd-thumbnail-overlay-time-status-renderer badge-shape div',
+].join(', ');
+const SELECTOR_VIDEO_METADATA = ['yt-content-metadata-view-model span', 'ytd-video-meta-block span'].join(', ');
 const SELECTOR_SHORTS_SECTION = 'ytd-rich-shelf-renderer[is-shorts]';
 const SELECTOR_EXPANDABLE_SECTION = 'ytd-rich-shelf-renderer[has-expansion-button]';
 
@@ -32,8 +39,8 @@ chrome.storage.sync.get(
         'doHideWatched',
         'doHideExpandableSections',
         'doFadeByLength',
-        'videoLengthMax',
         'videoLengthMin',
+        'videoLengthMax',
         'videoLengthMode',
         'doFilterByViews',
         'videoViewsMin',
@@ -45,8 +52,8 @@ chrome.storage.sync.get(
         doHideWatched,
         doHideExpandableSections,
         doFadeByLength,
-        videoLengthMax,
         videoLengthMin,
+        videoLengthMax,
         videoLengthMode = 'fade',
         doFilterByViews = false,
         videoViewsMin = 0,
@@ -149,6 +156,7 @@ chrome.storage.sync.get(
             });
         };
 
+        // Apply video views filter (fade or hide) based on settings
         const parseViewCountText = (text) => {
             if (!text) return null;
 
@@ -203,7 +211,6 @@ chrome.storage.sync.get(
             return parseViewCountText([...candidates][0]);
         };
 
-        // Apply video views filter (fade or hide) based on settings
         const applyVideoViewsFilter = () => {
             if (!doFilterByViews) return;
 
