@@ -2,6 +2,11 @@
 
 ## Versions
 
+v0.11.0:
+
+- **feat**: content - enhance video item, duration, and metadata selectors to better detect videos on YouTube search surfaces.
+- **feat**: contentcategorize css - improve category UI consistency and theming with centralized light/dark CSS variables.
+
 v0.10.1:
 
 - **fix**: contentcategorize - update channel name link selector for improved channel detection accuracy on YouTube pages.
