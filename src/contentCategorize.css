@@ -12,7 +12,6 @@ html:root {
     --spt-category-active-text: #ffffff;
 }
 
-
 html[dark]:root {
     --spt-category-chip-bg: #272727;
     --spt-category-chip-bg-hover: #3a3a3a;
@@ -95,5 +94,4 @@ html[dark]:root {
 }
 .sptcl-js-hide-filtered * {
     visibility: hidden !important;
-}
 }
