@@ -1,20 +1,26 @@
-## Contributing
+# Contributing
 
-- Fork the repository and create a new branch.
-- Make your changes and test them.
-- Submit a pull request with a clear description following the pull request template.
+## Getting started
 
-## Install
+1. Fork the repository and create a branch for your change.
+2. Install the locked development dependencies:
 
-- run `npm install`
+    ```bash
+    npm ci
+    ```
 
-## Code Style
+3. Load `src/` through `chrome://extensions/` with Developer mode enabled. Reload the extension and refresh Twitch after each change to content scripts or styles.
 
-- Follow the ESLint/Prettier guidelines
-    - you need to run `npm run lint` before submitting a pull request.
+## Before opening a pull request
 
-## Communication
+Run the full local check:
 
-- Use issues to discuss new features or bugs.
-    - If you are submitting a bug, please provide a detailed description of the issue and how to reproduce it following the issue template.
-    - If you are submitting a feature, please provide a detailed description of the feature and how it should work following the feature template.
+```bash
+npm run lint
+```
+
+For changes that affect the release archive, keep `package.json` and `src/manifest.json` on the same version, and add release-facing changes to `CHANGELOG.md`.
+
+Follow the repository's ESLint and Prettier configuration. The CI workflow uses Node.js 22, `npm ci`, a critical-vulnerability audit, and `npm run lint`.
+
+Submit a pull request with a clear description and the relevant testing notes, using the pull request template. Use issues to discuss bugs and features; include reproduction steps for bugs and expected behavior for feature requests.

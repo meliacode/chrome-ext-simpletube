@@ -1,131 +1,58 @@
-# Publishing to Chrome Web Store
+# Publishing SimpleTube to the Chrome Web Store
 
-Step-by-step guide for building and releasing a new version of SimpleTube on the Chrome Web Store.
+## Prepare a release
 
----
+1. Choose the next semantic version (`MAJOR.MINOR.PATCH`) and update it in both places:
 
-## 1. Pre-requisites
+    - `src/manifest.json` — Chrome reads this version.
+    - `package.json` — project release metadata; it must match the manifest.
 
-Before building the package, make sure the following are done:
+2. Add a dated entry for the version to `CHANGELOG.md` and update `README.md` if the feature set changed.
+3. Install dependencies (if needed) and validate the source:
 
-### Update the version
+    ```bash
+    npm install
+    npm run lint
+    ```
 
-Bump the version in **two** places:
+    Fix any reported issues with `npm run lint:fix` before proceeding.
 
-- `src/manifest.json` — `"version"` field (Chrome reads this)
-- `package.json` — `"version"` field (keeps package metadata in sync)
+4. Build and inspect the extension archive:
 
-Both must match. Follow [semantic versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
+    ```bash
+    npm run package
+    unzip -l dist/releases/simpletube-v<version>.zip
+    ```
 
-### Update the changelog
+The archive contains the files inside `src/`, including `manifest.json`, service worker, content assets, options assets, and `icons/`. Do not zip the containing `src/` directory itself.
 
-Add a new version entry to `CHANGELOG.md` with all notable changes, following the existing format.
-Update also the `README.md` file to ensure new feature is documented.
+## Release
 
-### Run lint
+1. Commit the release changes and push the branch.
+2. Create and push an annotated tag matching the manifest version:
 
-Ensure there are no lint or formatting issues before building:
+    ```bash
+    git tag -a v<version> -m "SimpleTube v<version>"
+    git push origin v<version>
+    ```
 
-```bash
-npm run lint
-```
-
-Fix any reported issues with `npm run lint:fix` before proceeding.
-
-### Commit and push
-
-Commit all pending changes and push to the main branch:
-
-```bash
-git add .
-git commit -m "chore: release v<version>"
-git push origin main
-```
-
----
-
-## 2. Tag the release
-
-Create an annotated Git tag matching the version, then push it:
-
-```bash
-git tag v<version>
-git push origin v<version>
-```
-
-Example for version `0.9.0`:
-
-```bash
-git tag v0.9.0
-git push origin v0.9.0
-```
-
----
-
-## 3. Build the zip package
-
-Run the package script to create a zip from the `src/` directory:
-
-```bash
-npm run package
-```
-
-This will:
-
-- Read the version from `src/manifest.json` automatically
-- Create a `simpletube-v<version>.zip` in the project root
-- Exclude `.crx` files and `.DS_Store` from the archive
-
-> **Note**: The zip contains the raw contents of `src/` (not the folder itself), which is the format required by the Chrome Web Store.
-
-Verify the output file exists and contains the expected files:
-
-```bash
-unzip -l simpletube-v<version>.zip
-```
-
-Expected contents:
-
-```
-background.js
-content.css
-content.js
-contentCategorize.css
-contentCategorize.js
-icons/
-manifest.json
-options.css
-options.html
-options.js
-styles.css
-```
-
----
-
-## 4. Upload to the Chrome Web Store
-
-1. Go to the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole/).
-2. Select the **SimpleTube** listing.
-3. Click **Package** → **Upload new package**.
-4. Upload the generated `simpletube-v<version>.zip`.
-5. Fill in the **Store listing** changes if needed (description, screenshots).
-6. Add release notes in the **What's new** field (use the CHANGELOG entry as a reference).
-7. Click **Submit for review**.
+3. In the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole/)
+    1. Select the **SimpleTube** listing
+    2. Click **Package** → **Upload new package**.
+    3. Upload `dist/releases/simpletube-v<version>.zip`.
+4. Update the store description and privacy disclosure if the extension's behavior or permissions changed
+5. Add the corresponding changelog notes to **What's new**
+6. Submit the release for review.
 
 > Review by Google typically takes a few days. You will receive an email once the extension is published or if changes are requested.
 
----
+## Release checklist
 
-## Summary checklist
-
-- [ ] Version updated in `src/manifest.json`
-- [ ] Version updated in `package.json`
-- [ ] `CHANGELOG.md` updated with new version entry
-- [ ] `npm run lint` passes with no errors
-- [ ] All changes committed and pushed to `main`
-- [ ] Git tag created and pushed (`git tag v<version> && git push origin v<version>`)
-- [ ] Zip built with `npm run package`
-- [ ] Zip contents verified
-- [ ] Zip uploaded to the Chrome Web Store Developer Dashboard
-- [ ] Release notes added
-- [ ] Submitted for review
+- [ ] `package.json` and `src/manifest.json` have the same version.
+- [ ] `CHANGELOG.md` includes the version and release notes.
+- [ ] `README.md` reflects the current feature set.
+- [ ] `npm run lint` passes.
+- [ ] `dist/releases/simpletube-v<version>.zip` was built and inspected.
+- [ ] Store screenshots are 1280×800 and the small promotional image is 440×280.
+- [ ] Release commit and `v<version>` tag are pushed.
+- [ ] The archive and release notes are submitted in the Chrome Web Store dashboard.

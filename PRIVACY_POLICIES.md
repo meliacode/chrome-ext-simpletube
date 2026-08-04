@@ -1,51 +1,46 @@
-# Privacy Policy SimpleTube
+# SimpleTube Privacy Policy
 
-Effective Date: 2024-12-10
+Effective Date: 2026-08-04
 
 ---
 
-### Introduction
+### Overview
 
-SimpleTube is committed to protecting your privacy. This extension is designed to operate entirely within your browser
-and does not collect, store, or transmit any personal data. Below, we outline how SimpleTube handles your information
-to ensure transparency and compliance with privacy regulations.
+SimpleTube is a Chrome extension that helps you reduce noise on YouTube by filtering videos, hiding sections, and organizing subscriptions.
 
-### Data Collection
+The extension is designed to operate locally in your browser and does not collect, sell, or transmit your personal data to any external service.
 
-SimpleTube does not collect or transmit any personal or identifiable data. All settings and preferences are stored
-locally on your device using Chrome's storage API.
+## Data stored by the extension
 
-### Data Usage
+SimpleTube stores your preferences and category settings using Chrome's storage API. This may include:
 
-The extension uses the locally stored data to:
+- filter settings such as video length and view-count limits
+- visibility preferences such as hiding Shorts, watched videos, or expandable sections
+- subscription categories and channel-to-category assignments
 
-- Save your preferences for video length filters, watched video visibility, and subscription categories.
-- Enhance your browsing experience on YouTube by applying these preferences.
+These settings are stored in your browser profile. If Chrome Sync is enabled in your browser, the data may also be synced with your signed-in Chrome profile according to Chrome's own sync behavior.
 
-No data is shared with external servers or third parties.
+### How the Extension Uses Data
+
+To provide its features, SimpleTube reads the content of YouTube pages that you are viewing in your browser. This may include information such as video durations, view counts, and channel names so the extension can apply local filtering and categorization rules. This processing happens entirely on your device.
+
+SimpleTube does not transmit your browsing activity, YouTube page content, account details, or personal information to an external server.
 
 ### Permissions
 
-SimpleTube requests only the permissions required to provide its functionality:
+1. **Storage:** to save your settings and category data.
+2. **Access to YouTube pages:** to apply filters and category controls on YouTube pages.
 
-1. **Storage:** To save user settings locally.
-2. **Host Access (`*.youtube.com`):** To apply changes only on YouTube pages.
-
-These permissions are strictly used to deliver the intended functionality of the extension.
-
-### Third-Party Services
-
-SimpleTube does not use or integrate with any third-party services or analytics tools.
+SimpleTube does not use analytics, advertising, network requests to third-party services, or external data collection.
 
 ### Changes to This Policy
 
-We may update this Privacy Policy from time to time. Any changes will be reflected in the policy published here.
-We encourage you to review this policy periodically.
+We may update this Privacy Policy from time to time. Any changes will be reflected in the policy published here, with an updated effective date.
 
 ### Contact
 
-If you have any questions or concerns about this Privacy Policy, please [contact us using the issue section on github](https://github.com/Essomia/chrome-ext-simpletube/issues).
+If you have any questions or concerns about this Privacy Policy, please [contact us through the GitHub issues page](https://github.com/meliacode/chrome-ext-simpletube/issues).
 
 ---
 
-By using SimpleTube, you agree to this Privacy Policy. Thank you for trusting us to enhance your YouTube experience!
+By using SimpleTube, you agree to this Privacy Policy.
