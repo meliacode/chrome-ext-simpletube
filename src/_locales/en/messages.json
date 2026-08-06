@@ -1,0 +1,130 @@
+{
+  "extensionName": { "message": "SimpleTube — YouTube Filters & Subscriptions Manager" },
+  "extensionDescription": {
+    "message": "Filter YouTube videos and sections and organize subscriptions into custom categories."
+  },
+  "optionsTitle": { "message": "SimpleTube — Options" },
+  "optionsEyebrow": { "message": "Options" },
+  "optionsProductTitle": { "message": "YouTube Filters & Subscriptions Manager" },
+  "optionsDescription": {
+    "message": "Fine-tune how SimpleTube hides distractions, filters videos by length or views, and organizes subscriptions. Changes save automatically on supported YouTube pages."
+  },
+  "feedbackTitle": { "message": "Feedback" },
+  "feedbackDescription": {
+    "message": "Using the extension regularly? Share feedback, leave a rating, or suggest improvements."
+  },
+  "openStorePage": { "message": "Open Chrome Web Store page" },
+  "generalOptions": { "message": "General options" },
+  "generalOptionsDescription": {
+    "message": "Hide common distractions in feeds and subscription views without changing YouTube account data or history."
+  },
+  "hideWatchedTitle": { "message": "Hide watched videos from feed lists" },
+  "hideWatchedHelp": {
+    "message": "Videos with a visible watched progress bar are removed from supported lists so you mainly see unwatched items."
+  },
+  "hideShortsTitle": { "message": "Hide Shorts shelves in page content" },
+  "hideShortsHelp": {
+    "message": "Shorts rows and shelves are removed from supported feeds without disabling YouTube's Shorts navigation."
+  },
+  "hideExpandableTitle": { "message": "Hide expandable recommendation sections" },
+  "hideExpandableHelp": {
+    "message": "Removes expandable recommendation blocks on subscription surfaces so lists are easier to scan."
+  },
+  "defaultOff": { "message": "Default: Off" },
+  "defaultOn": { "message": "Default: On" },
+  "videoLengthTitle": { "message": "Video length filter" },
+  "videoLengthDescription": {
+    "message": "Choose a minimum and maximum video length, then fade or hide videos outside that range."
+  },
+  "applyLengthTitle": { "message": "Apply video length filter" },
+  "applyLengthHelp": {
+    "message": "Compares each supported video duration to the minimum and maximum values below."
+  },
+  "minimumLength": { "message": "Minimum length" },
+  "minimumLengthHelp": { "message": "Videos shorter than this value are treated as out of range." },
+  "maximumLength": { "message": "Maximum length" },
+  "maximumLengthHelp": { "message": "Videos longer than this value are treated as out of range." },
+  "defaultZeroMinutes": { "message": "Default: 0 minutes" },
+  "defaultThirtyMinutes": { "message": "Default: 30 minutes" },
+  "zeroMinutes": { "message": "0 minutes" },
+  "fiveMinutes": { "message": "5 minutes" },
+  "tenMinutes": { "message": "10 minutes" },
+  "twentyMinutes": { "message": "20 minutes" },
+  "thirtyMinutes": { "message": "30 minutes" },
+  "fortyMinutes": { "message": "40 minutes" },
+  "fiftyMinutes": { "message": "50 minutes" },
+  "oneHour": { "message": "1 hour" },
+  "ninetyMinutes": { "message": "1 hour 30 minutes" },
+  "twoHours": { "message": "2 hours" },
+  "outsideRangeAction": { "message": "Action outside range" },
+  "outsideRangeHelp": {
+    "message": "Fade keeps out-of-range videos visible but dimmed; Hide removes them from the layout."
+  },
+  "fadeOption": { "message": "Fade (reduce opacity)" },
+  "hideOption": { "message": "Hide (remove from view)" },
+  "hideIsStricter": { "message": "Impact: Hide is stricter than Fade." },
+  "videoViewsTitle": { "message": "Video views filter" },
+  "videoViewsDescription": {
+    "message": "Choose a preferred view-count range, then fade or hide videos outside that range."
+  },
+  "applyViewsTitle": { "message": "Apply video views filter" },
+  "applyViewsHelp": { "message": "Compares visible view counts with the minimum and maximum values below." },
+  "minimumViews": { "message": "Minimum views" },
+  "minimumViewsHelp": { "message": "Videos below this visible view count are treated as out of range." },
+  "maximumViews": { "message": "Maximum views" },
+  "maximumViewsHelp": { "message": "Videos above this visible view count are treated as out of range." },
+  "defaultZero": { "message": "Default: 0" },
+  "defaultOneMillion": { "message": "Default: 1M" },
+  "unrecognizedViewsImpact": { "message": "Impact: unrecognized YouTube view formats are left unchanged." },
+  "categoriesTitle": { "message": "Subscription categories" },
+  "categoriesDescriptionStart": { "message": "Create custom categories, filter the" },
+  "subscriptionsPage": { "message": "subscriptions page" },
+  "categoriesDescriptionMiddle": { "message": "and assign channels from the" },
+  "channelsPage": { "message": "channels listing page" },
+  "enableCategoriesTitle": { "message": "Enable subscription categories" },
+  "enableCategoriesHelp": {
+    "message": "Shows category filters on subscriptions and category selectors on supported channel lists."
+  },
+  "categoryName": { "message": "Category name" },
+  "categoryHelp": { "message": "Creates a category used in subscription filters and channel assignments." },
+  "categoryPlaceholder": { "message": "New category name" },
+  "addCategory": { "message": "Add category" },
+  "savedCategories": { "message": "Saved categories" },
+  "deleteCategoryImpact": {
+    "message": "Impact: deleting a category also removes assignments from channels using it."
+  },
+  "noCategories": { "message": "No categories added yet" },
+  "assignedChannelCount": { "message": "$1 assigned channel(s)" },
+  "rename": { "message": "Rename" },
+  "delete": { "message": "Delete" },
+  "save": { "message": "Save" },
+  "cancel": { "message": "Cancel" },
+  "nameRequired": { "message": "Enter a category name." },
+  "duplicateCategory": { "message": "The category “$1” already exists." },
+  "categoryAdded": { "message": "Category “$1” added." },
+  "categoryRenamed": { "message": "Category renamed." },
+  "categoryDeleted": { "message": "Category deleted." },
+  "confirmDelete": { "message": "Delete “$1”? $2 channel assignment(s) will also be removed." },
+  "resetTitle": { "message": "Reset settings" },
+  "resetDescription": {
+    "message": "Reset filter options to their defaults while keeping category names and channel assignments."
+  },
+  "resetButton": { "message": "Reset options to defaults" },
+  "settingsReset": { "message": "Settings reset to their defaults." },
+  "settingEnabled": { "message": "$1 enabled." },
+  "settingDisabled": { "message": "$1 disabled." },
+  "hideWatchedSetting": { "message": "Hide watched videos" },
+  "hideShortsSetting": { "message": "Hide Shorts shelves" },
+  "hideExpandableSetting": { "message": "Hide expandable sections" },
+  "lengthFilterSetting": { "message": "Video length filter" },
+  "viewsFilterSetting": { "message": "Video views filter" },
+  "categoriesSetting": { "message": "Subscription categories" },
+  "minimumBelowMaximum": { "message": "Minimum must be less than maximum." },
+  "lengthUpdated": { "message": "Video length settings updated." },
+  "viewsUpdated": { "message": "Video view settings updated." },
+  "modeUpdated": { "message": "Filter action set to $1." },
+  "categoryDropdown": { "message": "Category" },
+  "categoryForChannel": { "message": "Category for $1" },
+  "allCategories": { "message": "All" },
+  "unassigned": { "message": "Not assigned" }
+}
