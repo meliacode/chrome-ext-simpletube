@@ -1,0 +1,108 @@
+name: Critical dependency security updates
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  dependabot:
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Verify Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+
+      - name: Allow only expected dependency files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_ECOSYSTEM: ${{ steps.metadata.outputs.package-ecosystem }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          set -euo pipefail
+
+          case "$PACKAGE_ECOSYSTEM" in
+            npm)
+              allowed_files='^(package\.json|package-lock\.json)$'
+              ;;
+            github-actions|github_actions)
+              allowed_files='^\.github/workflows/[^/]+\.ya?ml$'
+              ;;
+            *)
+              echo "Unsupported package ecosystem: $PACKAGE_ECOSYSTEM" >&2
+              exit 1
+              ;;
+          esac
+
+          unexpected_files="$({
+            gh pr diff "$PR_URL" --name-only
+          } | grep -Ev "$allowed_files" || true)"
+
+          if [[ -n "$unexpected_files" ]]; then
+            echo "Dependabot changed unexpected files:" >&2
+            echo "$unexpected_files" >&2
+            exit 1
+          fi
+
+      - name: Check advisory severity
+        id: severity
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+
+          mapfile -t advisory_ids < <(
+            printf '%s\n' "$PR_BODY" |
+              grep -Eo 'GHSA-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}' |
+              sort -u
+          )
+
+          if (( ${#advisory_ids[@]} == 0 )); then
+            echo "No GitHub Security Advisory was found in the verified Dependabot PR." >&2
+            exit 1
+          fi
+
+          is_critical=false
+          for advisory_id in "${advisory_ids[@]}"; do
+            advisory_severity="$(
+              gh api "/advisories/$advisory_id" --jq '.severity'
+            )"
+            echo "$advisory_id: $advisory_severity"
+
+            if [[ "$advisory_severity" == "critical" ]]; then
+              is_critical=true
+            fi
+          done
+
+          echo "is-critical=$is_critical" >> "$GITHUB_OUTPUT"
+
+      - name: Close non-critical security update
+        if: steps.severity.outputs.is-critical != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: >-
+          gh pr close "$PR_URL"
+          --comment "Closed automatically because none of the associated advisories are rated critical."
+
+      - name: Approve critical security update
+        if: steps.severity.outputs.is-critical == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr review --approve "$PR_URL"
+
+      - name: Enable auto-merge after required checks
+        if: steps.severity.outputs.is-critical == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --auto --squash "$PR_URL"

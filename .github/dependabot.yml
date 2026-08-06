@@ -1,0 +1,22 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # Routine version updates are intentionally disabled. Dependabot security
+    # updates are not subject to this limit.
+    open-pull-requests-limit: 0
+    commit-message:
+      prefix: security
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    # Routine version updates are intentionally disabled. Dependabot security
+    # updates are not subject to this limit.
+    open-pull-requests-limit: 0
+    commit-message:
+      prefix: security
