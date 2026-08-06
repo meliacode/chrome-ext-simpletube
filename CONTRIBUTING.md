@@ -9,7 +9,7 @@
     npm ci
     ```
 
-3. Load `src/` through `chrome://extensions/` with Developer mode enabled. Reload the extension and refresh Twitch after each change to content scripts or styles.
+3. Load `src/` through `chrome://extensions/` with Developer mode enabled. Reload the extension and refresh YouTube after each change to content scripts or styles.
 
 ## Before opening a pull request
 
