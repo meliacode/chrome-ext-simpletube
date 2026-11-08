@@ -1,61 +1,44 @@
 /**
- * Chrome Extension Background Script
- * Will run in the background of the Chrome extension.
+ * Default settings and lifecycle initialization.
  */
 
-chrome.runtime.onInstalled.addListener(({ reason, previousVersion }) => {
-    /**
-     * If the extension is installed
-     */
+const DEFAULT_SETTINGS = {
+    doHideShorts: false,
+    doHideWatched: false,
+    doHideExpandableSections: false,
+    doFadeByLength: true,
+    videoLengthMode: 'fade',
+    videoLengthMin: 0,
+    videoLengthMax: 30,
+    doFilterByViews: false,
+    videoViewsMode: 'fade',
+    videoViewsMin: 0,
+    videoViewsMax: 1000000,
+    doCategorizeSubscription: true,
+    categories: [],
+    channelCategoryAssigned: {},
+};
+
+// Repairs newly introduced or missing settings without overwriting existing user preferences.
+async function initializeStorage() {
+    const storedSettings = await chrome.storage.sync.get(Object.keys(DEFAULT_SETTINGS));
+    const missingSettings = Object.fromEntries(
+        Object.entries(DEFAULT_SETTINGS).filter(([key]) => typeof storedSettings[key] === 'undefined')
+    );
+
+    if (Object.keys(missingSettings).length > 0) {
+        await chrome.storage.sync.set(missingSettings);
+    }
+}
+
+// Ensures storage exists after install/update and opens setup only for a first installation.
+chrome.runtime.onInstalled.addListener(async ({ reason }) => {
+    await initializeStorage();
 
     if (reason === 'install') {
-        // Set the default upon installation
-        chrome.storage.sync.set({
-            // General Options
-            doHideShorts: false, // Default: do not hide shorts section
-            doHideWatched: false, // Default: do not fade watched videos
-            doHideExpandableSections: false, // Default: do not hide expandable sections in subscriptions page
-
-            // Video Length
-            doFadeByLength: true, // Default: enable filter by video length
-            // Mode for video length filter: 'fade' (reduce opacity) or 'hide' (remove element)
-            videoLengthMode: 'fade',
-            videoLengthMin: 0, // Default: minimum length 0 minutes
-            videoLengthMax: 30, // Default: maximum length 30 minutes
-
-            // Video Views
-            doFilterByViews: false, // Default: disable filter by views count
-            // Mode for video views filter: 'fade' (reduce opacity) or 'hide' (remove element)
-            videoViewsMode: 'fade',
-            videoViewsMin: 0, // Default: minimum views 0
-            videoViewsMax: 1000000, // Default: maximum views 1 Million
-
-            // Subscriptions Categories
-            doCategorizeSubscription: true, // Default: enable categorize subscriptions
-            categories: [], // Default: set default categories
-            channelCategoryAssigned: {}, // Default: no categories assigned
-        });
-
-        // Open the options page
-        chrome.runtime.openOptionsPage();
-    }
-
-    /**
-     * If the extension is updated
-     */
-
-    if (reason === 'update') {
-        // Get the current version
-        const currentVersion = chrome.runtime.getManifest().version;
-
-        if (previousVersion === currentVersion) {
-            return;
-        }
-
-        // Log the update
-        console.log(`[SimpleTube] Updated from ${previousVersion} to ${currentVersion}`);
-
-        // Open the options page
-        chrome.runtime.openOptionsPage();
+        await chrome.runtime.openOptionsPage();
     }
 });
+
+// Repairs missing defaults when the browser starts without resetting existing users.
+chrome.runtime.onStartup.addListener(initializeStorage);
