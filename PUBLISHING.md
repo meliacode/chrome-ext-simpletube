@@ -11,7 +11,7 @@
 3. Install dependencies (if needed) and validate the source:
 
     ```bash
-    npm install
+    npm ci
     npm run lint
     ```
 

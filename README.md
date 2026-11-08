@@ -10,8 +10,10 @@ SimpleTube is a Chrome extension for reducing noise on YouTube. Filter videos by
 - Fade or hide videos outside a configurable duration range.
 - Fade or hide videos outside a configurable view-count range.
 - Create, rename, and delete custom subscription categories.
-- Assign subscribed channels to categories and filter the Subscriptions page by category.
-- Show category filters only when they contain at least one assigned channel.
+- Assign subscribed channels to categories from their profiles or the channels management page.
+- Filter the Subscriptions page by assigned category and the channels management page by category or unassigned status.
+- Remove a channel's category assignment when a confirmed unsubscribe is detected on its profile.
+- Show category filters on the Subscriptions page only when they contain at least one assigned channel.
 - Reapply filters as YouTube dynamically loads content.
 - Keep all processing in the browser with no analytics or external service.
 
@@ -27,17 +29,22 @@ For a local build, follow the development instructions below.
 2. Configure whether watched videos, Shorts shelves, or expandable sections should be hidden.
 3. Set optional minimum and maximum video duration or view-count filters, then choose whether out-of-range videos should fade or be hidden.
 4. Create subscription categories when needed.
-5. Visit YouTube's subscriptions or channels management pages to assign channels and filter subscriptions by category.
+5. On a subscribed channel's profile, use the category selector beside the subscription button to assign or change its category. The selector is shown when the subscription state can be identified.
+6. On YouTube's **Subscriptions** page, select a category to filter videos. Open **Manage** to assign categories to channels and filter the channel list, including unassigned channels.
+
+Selecting **Category** clears an assignment. If you unsubscribe on a channel profile, SimpleTube removes its assignment when it detects the confirmed change in YouTube's subscription control. The selector and automatic removal depend on supported YouTube markup. Deleting a category also removes its channel assignments; resetting filter options keeps categories and assignments.
 
 Unrecognized duration or view-count formats are left unchanged. Category filters persist while YouTube dynamically loads content and reset when the page is reloaded.
 
 ## How it works
 
 - Settings and category assignments are stored with `chrome.storage.sync`.
+- Missing settings are initialized without overwriting existing preferences. The options page opens automatically on first installation.
 - Content scripts inspect supported YouTube surfaces and apply the configured filters locally.
 - Visual changes use extension-prefixed CSS classes rather than repeated inline style writes.
 - Debounced mutation observers process content added by YouTube's single-page application without interval polling.
 - `contentCategorize.js` manages channel assignment controls and subscription category filters separately from the general video filters in `content.js`.
+- Extension interface strings use Chrome's localization system; English messages are in `src/_locales/en/messages.json`.
 
 ## Local development
 

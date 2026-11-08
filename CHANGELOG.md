@@ -4,6 +4,18 @@ All notable changes to SimpleTube are documented here.
 
 ## Versions
 
+### 0.12.0 — 2026-11-08
+
+- **feat**: assign or change a subscribed channel's category directly from its profile
+- **feat**: remove its assignment when a user unsubscribes from profile page.
+- **feat**: localize the extension (name, description, options page, and category controls) using Chrome's internationalization support, with default English messages.
+- **feat**: improve category management with inline renaming, assignment counts, and confirmation before deletion.
+- **fix**: initialize missing storage defaults without overwriting existing preferences or reopening options after an update.
+- **fix**: refresh filters and category controls when settings or YouTube's dynamically loaded content change, and remove stale filter classes when filters are disabled or data is unavailable.
+- **fix**: isolate the category content script to prevent naming conflicts with the video filter script.
+- **chore**: reorganize filtering and settings code, use local system fonts, and consolidate YouTube content-script registration.
+- **chore**: group DOM selectors, SimpleTube classes, and rendering configuration at the top of their scripts.
+
 ### 0.11.0
 
 - **feat**: content - enhance video item, duration, and metadata selectors to better detect videos on YouTube search surfaces.
