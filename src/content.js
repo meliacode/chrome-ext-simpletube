@@ -2,6 +2,7 @@
  * General YouTube filtering content script.
  */
 
+// YouTube selectors.
 const SELECTOR_VIDEO_ITEM = [
     'ytd-rich-item-renderer',
     'ytd-video-renderer[is-search]',
@@ -16,6 +17,7 @@ const SELECTOR_VIDEO_METADATA = ['yt-content-metadata-view-model span', 'ytd-vid
 const SELECTOR_SHORTS_SECTION = 'ytd-rich-shelf-renderer[is-shorts]';
 const SELECTOR_EXPANDABLE_SECTION = 'ytd-rich-shelf-renderer[has-expansion-button]';
 
+// SimpleTube classes.
 const CLASS_JS_FADE_LENGTH = 'sptcl-js-fade-length';
 const CLASS_JS_HIDE_LENGTH = 'sptcl-js-hide-length';
 const CLASS_JS_FADE_VIEWS = 'sptcl-js-fade-views';
@@ -24,6 +26,8 @@ const CLASS_JS_HIDE_SHORTS = 'sptcl-js-hide-shorts';
 const CLASS_JS_HIDE_WATCHED = 'sptcl-js-hide-watched';
 const CLASS_JS_HIDE_EXPANDABLE = 'sptcl-js-hide-expandable';
 
+// Filter configuration.
+const RENDER_DEBOUNCE_MS = 350;
 const DEFAULT_SETTINGS = {
     doHideShorts: false,
     doHideWatched: false,
@@ -171,7 +175,7 @@ function render() {
 
 function scheduleRender() {
     window.clearTimeout(renderTimeoutId);
-    renderTimeoutId = window.setTimeout(render, 350);
+    renderTimeoutId = window.setTimeout(render, RENDER_DEBOUNCE_MS);
 }
 
 function loadSettings(callback = render) {

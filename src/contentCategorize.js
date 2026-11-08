@@ -5,8 +5,7 @@
 (() => {
     const { getMessage } = globalThis.extensionI18n;
 
-    const CHANNELS_PATH = '/feed/channels';
-    const SUBSCRIPTIONS_PATH = '/feed/subscriptions';
+    // YouTube selectors and classes.
     const SELECTOR_CHANNEL_PAGE = '.ytd-page-manager[page-subtype="subscriptions-channels"]';
     const SELECTOR_CHANNEL_RENDERER = 'ytd-channel-renderer';
     const SELECTOR_SUBSCRIPTION_PAGE = '.ytd-page-manager[page-subtype="subscriptions"]';
@@ -17,15 +16,31 @@
     const SELECTOR_PROFILE_HEADER =
         'ytd-c4-tabbed-header-renderer, ytd-page-header-renderer, page-header-view-model, yt-page-header-view-model';
     const SELECTOR_PROFILE_SUBSCRIBE = 'ytd-subscribe-button-renderer, yt-subscribe-button-view-model';
+    const SELECTOR_HIDDEN_BROWSE = 'ytd-browse[hidden]';
+    const SELECTOR_PROFILE_HANDLE_LINK = 'a[href^="/@"], a[href^="https://www.youtube.com/@"]';
+    const SELECTOR_PROFILE_METADATA = 'yt-content-metadata-view-model';
+    const SELECTOR_LEGACY_SUBSCRIBE = 'ytd-subscribe-button-renderer';
+    const SELECTOR_PROFILE_SUBSCRIBE_BUTTON = '.ytSubscribeButtonViewModelContainer > button';
+    const YOUTUBE_CLASS_SUBSCRIBED = 'ytSpecButtonShapeNextIconLeadingTrailing';
+    const YOUTUBE_CLASS_UNSUBSCRIBED = 'ytSpecButtonShapeNextFilled';
 
-    const CATEGORY_ALL = '__all__';
-    const CATEGORY_NOT_ASSIGNED = '__unassigned__';
+    // SimpleTube classes.
     const CLASS_CATEGORY_SELECT = 'sptcl-js-category-select';
     const CLASS_CATEGORY_OPTION = 'sptcl-js-category-option';
     const CLASS_CHANNEL_FILTER = 'sptcl-js-channel-filter-container';
     const CLASS_SUBSCRIPTION_FILTER = 'sptcl-js-subscription-filter-container';
     const CLASS_FILTER_BUTTON = 'sptcl-js-filter-button';
     const CLASS_HIDE_FILTERED = 'sptcl-js-hide-filtered';
+    const CLASS_PROFILE_CATEGORY_SELECT = 'sptcl-js-profile-category-select';
+    const CLASS_PROFILE_HAS_CATEGORY_SELECT = 'sptcl-js-profile-has-category-select';
+
+    // Navigation and rendering configuration.
+    const CHANNELS_PATH = '/feed/channels';
+    const SUBSCRIPTIONS_PATH = '/feed/subscriptions';
+    const CATEGORY_ALL = '__all__';
+    const CATEGORY_NOT_ASSIGNED = '__unassigned__';
+    const RENDER_DEBOUNCE_MS = 350;
+    const MAX_SELECTOR_WARNINGS = 5;
 
     const SETTINGS_KEYS = ['doCategorizeSubscription', 'categories', 'channelCategoryAssigned'];
     let currentSettings = {
@@ -39,7 +54,7 @@
     let profileSubscription = null;
 
     function warnMissingSelector(selector) {
-        if (warningCount >= 5) {
+        if (warningCount >= MAX_SELECTOR_WARNINGS) {
             return;
         }
         warningCount += 1;
@@ -215,19 +230,19 @@
         const header =
             match &&
             [...document.querySelectorAll(SELECTOR_PROFILE_HEADER)].find(
-                (element) => !element.closest('ytd-browse[hidden]') && element.querySelector(SELECTOR_PROFILE_SUBSCRIBE)
+                (element) =>
+                    !element.closest(SELECTOR_HIDDEN_BROWSE) && element.querySelector(SELECTOR_PROFILE_SUBSCRIBE)
             );
         const subscribe = header?.querySelector(SELECTOR_PROFILE_SUBSCRIBE);
-        subscribe.parentElement.classList.add('sptcl-js-profile-has-category-select');
-
         if (!header || !subscribe) {
             profileSubscription = null;
             document.querySelectorAll(`.${CLASS_CATEGORY_SELECT}`).forEach((select) => select.remove());
             return;
         }
+        subscribe.parentElement?.classList.add(CLASS_PROFILE_HAS_CATEGORY_SELECT);
 
-        const handleLink = header.querySelector('a[href^="/@"], a[href^="https://www.youtube.com/@"]');
-        const handleText = header.querySelector('yt-content-metadata-view-model')?.textContent.match(/@[^\s·]+/)?.[0];
+        const handleLink = header.querySelector(SELECTOR_PROFILE_HANDLE_LINK);
+        const handleText = header.querySelector(SELECTOR_PROFILE_METADATA)?.textContent.match(/@[^\s·]+/)?.[0];
         let channelName;
         try {
             const handle = match[1] || (handleLink ? new URL(handleLink.href).pathname.split('/')[1] : handleText);
@@ -249,13 +264,13 @@
         // The modern button uses different shapes for the subscription and
         // notification actions. Treat unrecognized markup as an unknown state.
         let subscribed = null;
-        if (subscribe.matches('ytd-subscribe-button-renderer')) {
+        if (subscribe.matches(SELECTOR_LEGACY_SUBSCRIBE)) {
             subscribed = subscribe.hasAttribute('subscribed');
         } else {
-            const button = subscribe.querySelector('.ytSubscribeButtonViewModelContainer > button');
-            if (button?.classList.contains('ytSpecButtonShapeNextIconLeadingTrailing')) {
+            const button = subscribe.querySelector(SELECTOR_PROFILE_SUBSCRIBE_BUTTON);
+            if (button?.classList.contains(YOUTUBE_CLASS_SUBSCRIBED)) {
                 subscribed = true;
-            } else if (button?.classList.contains('ytSpecButtonShapeNextFilled')) {
+            } else if (button?.classList.contains(YOUTUBE_CLASS_UNSUBSCRIBED)) {
                 subscribed = false;
             }
         }
@@ -291,7 +306,7 @@
             select?.remove();
             select = createCategorySelect(channelName);
             select.dataset.categorySignature = categorySignature;
-            select.classList.add('sptcl-js-profile-category-select');
+            select.classList.add(CLASS_PROFILE_CATEGORY_SELECT);
             subscribe.insertAdjacentElement('afterend', select);
         } else if (select.previousElementSibling !== subscribe) {
             subscribe.insertAdjacentElement('afterend', select);
@@ -318,7 +333,7 @@
         const path = window.location.pathname.replace(/\/$/, '');
         if (path === CHANNELS_PATH) {
             profileSubscription = null;
-            document.querySelectorAll('.sptcl-js-profile-category-select').forEach((select) => select.remove());
+            document.querySelectorAll(`.${CLASS_PROFILE_CATEGORY_SELECT}`).forEach((select) => select.remove());
             document.querySelector(`.${CLASS_SUBSCRIPTION_FILTER}`)?.remove();
             renderChannelDropdowns();
             const channelPage = document.querySelector(SELECTOR_CHANNEL_PAGE);
@@ -357,14 +372,14 @@
             .querySelectorAll(`.${CLASS_HIDE_FILTERED}`)
             .forEach((element) => element.classList.remove(CLASS_HIDE_FILTERED));
         document
-            .querySelectorAll(`.${CLASS_CATEGORY_SELECT}:not(.sptcl-js-profile-category-select)`)
+            .querySelectorAll(`.${CLASS_CATEGORY_SELECT}:not(.${CLASS_PROFILE_CATEGORY_SELECT})`)
             .forEach((element) => element.remove());
         renderProfileDropdown(path);
     }
 
     function scheduleRender() {
         window.clearTimeout(renderTimeoutId);
-        renderTimeoutId = window.setTimeout(render, 350);
+        renderTimeoutId = window.setTimeout(render, RENDER_DEBOUNCE_MS);
     }
 
     function loadSettings(callback = render) {

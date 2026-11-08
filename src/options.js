@@ -4,6 +4,7 @@
 
 const { getMessage, localizePage } = globalThis.extensionI18n;
 
+// SimpleTube element IDs and classes.
 const DOM_IDS = {
     alert: 'sptid-alert-message',
     categoriesEnabled: 'sptid-do-categorize-subscription',
@@ -27,6 +28,21 @@ const DOM_IDS = {
     viewsMode: 'sptid-video-views-mode',
 };
 
+const CLASSES = {
+    disabled: 'sptcl-js-is-disabled',
+    categoryDetails: 'sptcl-js-category-details',
+    categoryActions: 'sptcl-js-category-actions',
+    categoryButton: 'sptcl-js-form-button-category',
+    categoryEditor: 'sptcl-js-category-editor',
+    textInput: 'sptcl-form-text-input',
+    formButton: 'sptcl-form-button',
+    secondaryButton: 'sptcl-form-button-secondary',
+    emptyItem: 'sptcl-js-empty-item',
+};
+
+// Settings and interface configuration.
+const ALERT_DURATION_MS = 4000;
+const CATEGORY_NAME_MAX_LENGTH = 30;
 const DEFAULT_OPTIONS = {
     doHideShorts: false,
     doHideWatched: false,
@@ -56,7 +72,7 @@ function showAlert(message, state = 'success') {
     showAlert.timeoutId = window.setTimeout(() => {
         alertElement.textContent = '';
         delete alertElement.dataset.state;
-    }, 4000);
+    }, ALERT_DURATION_MS);
 }
 
 function readSettings(callback) {
@@ -116,15 +132,15 @@ function updateOptionGroupsState() {
         getElement(id).disabled = !viewsEnabled;
     });
 
-    getElement(DOM_IDS.lengthGroup).classList.toggle('sptcl-js-is-disabled', !lengthEnabled);
-    getElement(DOM_IDS.viewsGroup).classList.toggle('sptcl-js-is-disabled', !viewsEnabled);
+    getElement(DOM_IDS.lengthGroup).classList.toggle(CLASSES.disabled, !lengthEnabled);
+    getElement(DOM_IDS.viewsGroup).classList.toggle(CLASSES.disabled, !viewsEnabled);
 }
 
 function createCategoryItem(category, categories, assignments) {
     const item = document.createElement('li');
 
     const details = document.createElement('span');
-    details.className = 'sptcl-js-category-details';
+    details.className = CLASSES.categoryDetails;
     const name = document.createElement('strong');
     name.textContent = category.name;
     const count = document.createElement('small');
@@ -132,32 +148,32 @@ function createCategoryItem(category, categories, assignments) {
     details.append(name, count);
 
     const actions = document.createElement('span');
-    actions.className = 'sptcl-js-category-actions';
+    actions.className = CLASSES.categoryActions;
     const rename = document.createElement('button');
     rename.type = 'button';
-    rename.className = 'sptcl-js-form-button-category';
+    rename.className = CLASSES.categoryButton;
     rename.textContent = getMessage('rename');
     const remove = document.createElement('button');
     remove.type = 'button';
-    remove.className = 'sptcl-js-form-button-category';
+    remove.className = CLASSES.categoryButton;
     remove.dataset.variant = 'danger';
     remove.textContent = getMessage('delete');
 
     rename.addEventListener('click', () => {
         const editor = document.createElement('form');
-        editor.className = 'sptcl-js-category-editor';
+        editor.className = CLASSES.categoryEditor;
         const input = document.createElement('input');
-        input.className = 'sptcl-form-text-input';
+        input.className = CLASSES.textInput;
         input.value = category.name;
-        input.maxLength = 30;
+        input.maxLength = CATEGORY_NAME_MAX_LENGTH;
         input.setAttribute('aria-label', getMessage('categoryName'));
         const saveButton = document.createElement('button');
         saveButton.type = 'submit';
-        saveButton.className = 'sptcl-form-button';
+        saveButton.className = CLASSES.formButton;
         saveButton.textContent = getMessage('save');
         const cancelButton = document.createElement('button');
         cancelButton.type = 'button';
-        cancelButton.className = 'sptcl-form-button sptcl-form-button-secondary';
+        cancelButton.className = `${CLASSES.formButton} ${CLASSES.secondaryButton}`;
         cancelButton.textContent = getMessage('cancel');
         cancelButton.addEventListener('click', () => renderCategories(categories, assignments));
         editor.append(input, saveButton, cancelButton);
@@ -219,7 +235,7 @@ function renderCategories(categories, assignments) {
 
     if (categories.length === 0) {
         const empty = document.createElement('li');
-        empty.className = 'sptcl-js-empty-item';
+        empty.className = CLASSES.emptyItem;
         empty.textContent = getMessage('noCategories');
         list.append(empty);
         return;
@@ -333,7 +349,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 
     readSettings((settings) => {
         applySettingsToForm(settings);
-        if (!document.querySelector('.sptcl-js-category-editor')) {
+        if (!document.querySelector(`.${CLASSES.categoryEditor}`)) {
             renderCategories(settings.categories, settings.channelCategoryAssigned);
         }
     });
