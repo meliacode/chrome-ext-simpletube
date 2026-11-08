@@ -218,6 +218,8 @@
                 (element) => !element.closest('ytd-browse[hidden]') && element.querySelector(SELECTOR_PROFILE_SUBSCRIBE)
             );
         const subscribe = header?.querySelector(SELECTOR_PROFILE_SUBSCRIBE);
+        subscribe.parentElement.classList.add('sptcl-js-profile-has-category-select');
+
         if (!header || !subscribe) {
             profileSubscription = null;
             document.querySelectorAll(`.${CLASS_CATEGORY_SELECT}`).forEach((select) => select.remove());

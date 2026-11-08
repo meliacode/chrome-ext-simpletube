@@ -49,6 +49,12 @@ html[dark]:root {
     background-color: var(--spt-category-chip-bg-hover);
 }
 
+.sptcl-js-profile-has-category-select {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
 .sptcl-js-profile-category-select {
     margin: 0 0 0 8px;
     vertical-align: middle;
