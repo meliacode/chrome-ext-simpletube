@@ -1,454 +1,340 @@
 /**
- * Chrome Extension Options Page Script
- * Will run on the options page of the Chrome extension.
+ * Options-page state, validation, and storage synchronization.
  */
 
-/**
- * Constants
- */
+const { getMessage, localizePage } = globalThis.extensionI18n;
 
-const DOM_ID_HIDE_SHORTS = 'sptid-do-hide-shorts';
-const DOM_ID_HIDE_WATCHED = 'sptid-do-hide-watched';
-const DOM_ID_HIDE_SUBSCRIPTIONS_EXPANDABLE = 'sptid-do-hide-subscriptions-expandable-sections';
-const DOM_ID_FADE_BY_LENGTH = 'sptid-do-fade-by-length';
-const DOM_ID_VIDEO_LENGTH_GROUP = 'sptid-video-length-group';
-const DOM_ID_VIDEO_LENGTH_MIN = 'sptid-video-length-min';
-const DOM_ID_VIDEO_LENGTH_MAX = 'sptid-video-length-max';
-const DOM_ID_VIDEO_LENGTH_MODE = 'sptid-video-length-mode';
-const DOM_ID_FILTER_BY_VIEWS = 'sptid-do-filter-by-views';
-const DOM_ID_VIDEO_VIEWS_GROUP = 'sptid-video-views-group';
-const DOM_ID_VIDEO_VIEWS_MIN = 'sptid-video-views-min';
-const DOM_ID_VIDEO_VIEWS_MAX = 'sptid-video-views-max';
-const DOM_ID_VIDEO_VIEWS_MODE = 'sptid-video-views-mode';
-const DOM_ID_CATEGORIZE_SUBSCRIPTION = 'sptid-do-categorize-subscription';
-const DOM_ID_CATEGORY_NAME = 'sptid-category-name';
-const DOM_ID_CATEGORY_ADD = 'sptid-category-add';
-const DOM_ID_CATEGORIES_LIST = 'sptid-categories-list';
-const DOM_ID_SETTINGS_RESET = 'sptid-settings-reset';
-const DOM_ID_ALERT_MESSAGE = 'sptid-alert-message';
-const DOM_ID_VERSION = 'sptid-version';
+const DOM_IDS = {
+    alert: 'sptid-alert-message',
+    categoriesEnabled: 'sptid-do-categorize-subscription',
+    categoriesList: 'sptid-categories-list',
+    categoryForm: 'sptid-category-form',
+    categoryName: 'sptid-category-name',
+    hideExpandable: 'sptid-do-hide-subscriptions-expandable-sections',
+    hideShorts: 'sptid-do-hide-shorts',
+    hideWatched: 'sptid-do-hide-watched',
+    lengthEnabled: 'sptid-do-fade-by-length',
+    lengthGroup: 'sptid-video-length-group',
+    lengthMax: 'sptid-video-length-max',
+    lengthMin: 'sptid-video-length-min',
+    lengthMode: 'sptid-video-length-mode',
+    reset: 'sptid-settings-reset',
+    version: 'sptid-version',
+    viewsEnabled: 'sptid-do-filter-by-views',
+    viewsGroup: 'sptid-video-views-group',
+    viewsMax: 'sptid-video-views-max',
+    viewsMin: 'sptid-video-views-min',
+    viewsMode: 'sptid-video-views-mode',
+};
 
-const CLASS_JS_STATE_DISABLED = 'sptcl-js-is-disabled';
-const CLASS_JS_STATE_ERROR = 'sptcl-js-error';
-const CLASS_JS_STATE_SUCCESS = 'sptcl-js-success';
-const CLASS_JS_EMPTY_ITEM = 'sptcl-js-empty-item';
-const CLASS_JS_CATEGORY_ACTIONS = 'sptcl-js-category-actions';
-const CLASS_JS_CATEGORY_BUTTON = 'sptcl-js-form-button-category';
+const DEFAULT_OPTIONS = {
+    doHideShorts: false,
+    doHideWatched: false,
+    doHideExpandableSections: false,
+    doFadeByLength: true,
+    videoLengthMode: 'fade',
+    videoLengthMin: 0,
+    videoLengthMax: 30,
+    doFilterByViews: false,
+    videoViewsMode: 'fade',
+    videoViewsMin: 0,
+    videoViewsMax: 1000000,
+    doCategorizeSubscription: true,
+};
 
-const STORAGE_KEY_CHANNEL_CATEGORY_ASSIGNED = 'channelCategoryAssigned';
-const STORAGE_KEY_CATEGORIES = 'categories';
+const STORAGE_KEYS = [...Object.keys(DEFAULT_OPTIONS), 'categories', 'channelCategoryAssigned'];
 
-const STORAGE_SETTINGS_KEYS = [
-    'doHideShorts',
-    'doHideWatched',
-    'doHideExpandableSections',
-    'doFadeByLength',
-    'videoLengthMax',
-    'videoLengthMin',
-    'doCategorizeSubscription',
-    'videoLengthMode',
-    'doFilterByViews',
-    'videoViewsMin',
-    'videoViewsMax',
-    'videoViewsMode',
-];
+function getElement(id) {
+    return document.getElementById(id);
+}
 
-/**
- * Helper Functions
- */
+function showAlert(message, state = 'success') {
+    const alertElement = getElement(DOM_IDS.alert);
+    alertElement.textContent = message;
+    alertElement.dataset.state = state;
+    window.clearTimeout(showAlert.timeoutId);
+    showAlert.timeoutId = window.setTimeout(() => {
+        alertElement.textContent = '';
+        delete alertElement.dataset.state;
+    }, 4000);
+}
 
-function getElementById(elementId) {
-    return document.getElementById(elementId);
+function readSettings(callback) {
+    chrome.storage.sync.get(STORAGE_KEYS, (stored) => {
+        callback({
+            ...DEFAULT_OPTIONS,
+            ...stored,
+            categories: Array.isArray(stored.categories) ? stored.categories : [],
+            channelCategoryAssigned:
+                stored.channelCategoryAssigned && typeof stored.channelCategoryAssigned === 'object'
+                    ? stored.channelCategoryAssigned
+                    : {},
+        });
+    });
+}
+
+function saveSettings(values, successMessage, callback) {
+    chrome.storage.sync.set(values, () => {
+        if (chrome.runtime.lastError) {
+            showAlert(chrome.runtime.lastError.message, 'error');
+            return;
+        }
+
+        showAlert(successMessage);
+        callback?.();
+    });
+}
+
+function normalizeName(name) {
+    return name.trim().replace(/\s+/g, ' ');
+}
+
+function createCategoryId() {
+    return globalThis.crypto?.randomUUID?.() || `category-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function hasDuplicateCategoryName(categories, name, excludedCategoryId = '') {
+    return categories.some(
+        (category) =>
+            category.id !== excludedCategoryId &&
+            category.name.localeCompare(name, undefined, { sensitivity: 'base' }) === 0
+    );
+}
+
+function countAssignments(assignments, categoryId) {
+    return Object.values(assignments).filter((assignedId) => assignedId === categoryId).length;
 }
 
 function updateOptionGroupsState() {
-    const lengthEnabled = getElementById(DOM_ID_FADE_BY_LENGTH).checked;
-    const viewsEnabled = getElementById(DOM_ID_FILTER_BY_VIEWS).checked;
+    const lengthEnabled = getElement(DOM_IDS.lengthEnabled).checked;
+    const viewsEnabled = getElement(DOM_IDS.viewsEnabled).checked;
 
-    const lengthGroup = getElementById(DOM_ID_VIDEO_LENGTH_GROUP);
-    const viewsGroup = getElementById(DOM_ID_VIDEO_VIEWS_GROUP);
-
-    [
-        getElementById(DOM_ID_VIDEO_LENGTH_MIN),
-        getElementById(DOM_ID_VIDEO_LENGTH_MAX),
-        getElementById(DOM_ID_VIDEO_LENGTH_MODE),
-    ].forEach((element) => {
-        element.disabled = !lengthEnabled;
+    [DOM_IDS.lengthMin, DOM_IDS.lengthMax, DOM_IDS.lengthMode].forEach((id) => {
+        getElement(id).disabled = !lengthEnabled;
+    });
+    [DOM_IDS.viewsMin, DOM_IDS.viewsMax, DOM_IDS.viewsMode].forEach((id) => {
+        getElement(id).disabled = !viewsEnabled;
     });
 
-    [
-        getElementById(DOM_ID_VIDEO_VIEWS_MIN),
-        getElementById(DOM_ID_VIDEO_VIEWS_MAX),
-        getElementById(DOM_ID_VIDEO_VIEWS_MODE),
-    ].forEach((element) => {
-        element.disabled = !viewsEnabled;
-    });
-
-    lengthGroup.classList.toggle(CLASS_JS_STATE_DISABLED, !lengthEnabled);
-    viewsGroup.classList.toggle(CLASS_JS_STATE_DISABLED, !viewsEnabled);
+    getElement(DOM_IDS.lengthGroup).classList.toggle('sptcl-js-is-disabled', !lengthEnabled);
+    getElement(DOM_IDS.viewsGroup).classList.toggle('sptcl-js-is-disabled', !viewsEnabled);
 }
 
-function renderAlertMessage(message, error = false) {
-    const messageElement = getElementById(DOM_ID_ALERT_MESSAGE);
-    messageElement.classList.remove(CLASS_JS_STATE_ERROR, CLASS_JS_STATE_SUCCESS);
+function createCategoryItem(category, categories, assignments) {
+    const item = document.createElement('li');
 
-    messageElement.textContent = message;
-    messageElement.classList.add(error ? CLASS_JS_STATE_ERROR : CLASS_JS_STATE_SUCCESS);
+    const details = document.createElement('span');
+    details.className = 'sptcl-js-category-details';
+    const name = document.createElement('strong');
+    name.textContent = category.name;
+    const count = document.createElement('small');
+    count.textContent = getMessage('assignedChannelCount', String(countAssignments(assignments, category.id)));
+    details.append(name, count);
 
-    // Clear any existing timeout to handle quick clicks
-    if (renderAlertMessage.timeoutId) {
-        clearTimeout(renderAlertMessage.timeoutId);
-    }
+    const actions = document.createElement('span');
+    actions.className = 'sptcl-js-category-actions';
+    const rename = document.createElement('button');
+    rename.type = 'button';
+    rename.className = 'sptcl-js-form-button-category';
+    rename.textContent = getMessage('rename');
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'sptcl-js-form-button-category';
+    remove.dataset.variant = 'danger';
+    remove.textContent = getMessage('delete');
 
-    // Hide the message after 5 seconds
-    renderAlertMessage.timeoutId = setTimeout(() => {
-        messageElement.classList.remove(CLASS_JS_STATE_ERROR, CLASS_JS_STATE_SUCCESS);
-        messageElement.textContent = '';
-    }, 5000);
-}
+    rename.addEventListener('click', () => {
+        const editor = document.createElement('form');
+        editor.className = 'sptcl-js-category-editor';
+        const input = document.createElement('input');
+        input.className = 'sptcl-form-text-input';
+        input.value = category.name;
+        input.maxLength = 30;
+        input.setAttribute('aria-label', getMessage('categoryName'));
+        const saveButton = document.createElement('button');
+        saveButton.type = 'submit';
+        saveButton.className = 'sptcl-form-button';
+        saveButton.textContent = getMessage('save');
+        const cancelButton = document.createElement('button');
+        cancelButton.type = 'button';
+        cancelButton.className = 'sptcl-form-button sptcl-form-button-secondary';
+        cancelButton.textContent = getMessage('cancel');
+        cancelButton.addEventListener('click', () => renderCategories(categories, assignments));
+        editor.append(input, saveButton, cancelButton);
+        item.replaceChildren(editor);
+        input.focus();
+        input.select();
 
-function renderListCategories(categories = []) {
-    const categoriesList = getElementById(DOM_ID_CATEGORIES_LIST);
-    categoriesList.innerHTML = '';
-
-    // Sort categories alphabetically by name
-    categories.sort((a, b) => a.name.localeCompare(b.name));
-
-    // If there are no categories, show a message
-    if (categories.length === 0) {
-        const emptyLiElement = document.createElement('li');
-        emptyLiElement.textContent = 'No categories added yet!';
-        emptyLiElement.classList.add(CLASS_JS_EMPTY_ITEM);
-
-        categoriesList.appendChild(emptyLiElement);
-        return;
-    }
-
-    // Render categories with delete and rename buttons
-    categories.forEach(({ id, name }) => {
-        // Create list item for each category
-        const newLiElement = document.createElement('li');
-
-        // Create span to hold the category name
-        const nameSpan = document.createElement('span');
-        nameSpan.textContent = name;
-
-        // Create div to hold the action buttons
-        const actionsDiv = document.createElement('div');
-        actionsDiv.classList.add(CLASS_JS_CATEGORY_ACTIONS);
-
-        // Create delete button for each category
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'delete';
-        deleteButton.classList.add(CLASS_JS_CATEGORY_BUTTON);
-
-        deleteButton.addEventListener('click', () => {
-            // Remove the associated category from all subscriptions
-            chrome.storage.sync.get([STORAGE_KEY_CHANNEL_CATEGORY_ASSIGNED], ({ channelCategoryAssigned }) => {
-                Object.keys(channelCategoryAssigned).forEach((channel) => {
-                    if (channelCategoryAssigned[channel] === id) {
-                        delete channelCategoryAssigned[channel];
-                    }
-                });
-
-                chrome.storage.sync.set({ channelCategoryAssigned });
-            });
-
-            // Remove the category from the list
-            chrome.storage.sync.get([STORAGE_KEY_CATEGORIES], ({ categories = [] }) => {
-                const newCategories = categories.filter((c) => c.id !== id);
-
-                chrome.storage.sync.set({ categories: newCategories }, () => {
-                    renderAlertMessage(`Category "${name}" deleted successfully!`);
-                    renderListCategories(newCategories);
-                });
-            });
-        });
-
-        // Create rename button for each category
-        const renameButton = document.createElement('button');
-        renameButton.textContent = 'rename';
-        renameButton.classList.add(CLASS_JS_CATEGORY_BUTTON);
-
-        renameButton.addEventListener('click', () => {
-            const newName = prompt('Enter new name for the category:', name);
-
-            if (newName && newName.trim() !== '' && newName.trim() !== name) {
-                chrome.storage.sync.get([STORAGE_KEY_CATEGORIES], ({ categories = [] }) => {
-                    if (categories.some((category) => category.name === newName.trim())) {
-                        renderAlertMessage(`Category "${newName.trim()}" already exists!`, true);
-                        return;
-                    }
-
-                    const updatedCategories = categories.map((category) =>
-                        category.id === id ? { ...category, name: newName.trim() } : category
-                    );
-
-                    chrome.storage.sync.set({ categories: updatedCategories }, () => {
-                        renderAlertMessage(`Category renamed to "${newName.trim()}" successfully!`);
-                        renderListCategories(updatedCategories);
-                    });
-                });
-            }
-        });
-
-        // Append buttons to actions div
-        actionsDiv.appendChild(renameButton);
-        actionsDiv.appendChild(deleteButton);
-
-        // Append elements to list item
-        newLiElement.appendChild(nameSpan);
-        newLiElement.appendChild(actionsDiv);
-
-        // Append list item to categories list
-        categoriesList.appendChild(newLiElement);
-    });
-}
-
-/**
- * Event Click Settings
- */
-
-// General options
-getElementById(DOM_ID_HIDE_SHORTS).addEventListener('click', () => {
-    const hideShorts = getElementById(DOM_ID_HIDE_SHORTS).checked;
-
-    chrome.storage.sync.set({ doHideShorts: hideShorts }, () => {
-        renderAlertMessage(`Short videos ${hideShorts ? 'hidden' : 'shown'} successfully!`);
-    });
-});
-
-getElementById(DOM_ID_HIDE_WATCHED).addEventListener('click', () => {
-    const hideWatched = getElementById(DOM_ID_HIDE_WATCHED).checked;
-
-    chrome.storage.sync.set({ doHideWatched: hideWatched }, () => {
-        renderAlertMessage(`Watched videos ${hideWatched ? 'hidden' : 'shown'} successfully!`);
-    });
-});
-
-getElementById(DOM_ID_HIDE_SUBSCRIPTIONS_EXPANDABLE).addEventListener('click', () => {
-    const hideExpandableSections = getElementById(DOM_ID_HIDE_SUBSCRIPTIONS_EXPANDABLE).checked;
-
-    chrome.storage.sync.set({ doHideExpandableSections: hideExpandableSections }, () => {
-        renderAlertMessage(`Expandable sections ${hideExpandableSections ? 'hidden' : 'shown'} successfully!`);
-    });
-});
-
-// Fade by length
-getElementById(DOM_ID_FADE_BY_LENGTH).addEventListener('click', () => {
-    const fadeByLength = getElementById(DOM_ID_FADE_BY_LENGTH).checked;
-
-    chrome.storage.sync.set({ doFadeByLength: fadeByLength }, () => {
-        updateOptionGroupsState();
-
-        renderAlertMessage(`Fade by length ${fadeByLength ? 'enabled' : 'disabled'} successfully!`);
-    });
-});
-
-[getElementById(DOM_ID_VIDEO_LENGTH_MIN), getElementById(DOM_ID_VIDEO_LENGTH_MAX)].forEach((element) => {
-    element.addEventListener('change', () => {
-        const videoLengthMin = Number.parseInt(getElementById(DOM_ID_VIDEO_LENGTH_MIN).value, 10);
-        const videoLengthMax = Number.parseInt(getElementById(DOM_ID_VIDEO_LENGTH_MAX).value, 10);
-
-        if (videoLengthMin >= videoLengthMax) {
-            renderAlertMessage('Minimum should be less than maximum!', true);
-            return;
-        }
-
-        // Save the settings to Chrome's storage
-        chrome.storage.sync.set(
-            {
-                videoLengthMax: videoLengthMax,
-                videoLengthMin: videoLengthMin,
-            },
-            () => {
-                renderAlertMessage('Video length settings updated successfully!');
-            }
-        );
-    });
-});
-
-// Video length mode (fade or hide)
-getElementById(DOM_ID_VIDEO_LENGTH_MODE).addEventListener('change', () => {
-    const mode = getElementById(DOM_ID_VIDEO_LENGTH_MODE).value;
-
-    chrome.storage.sync.set({ videoLengthMode: mode }, () => {
-        renderAlertMessage(`Video length mode set to "${mode}" successfully!`);
-    });
-});
-
-// Filter by views
-getElementById(DOM_ID_FILTER_BY_VIEWS).addEventListener('click', () => {
-    const filterByViews = getElementById(DOM_ID_FILTER_BY_VIEWS).checked;
-
-    chrome.storage.sync.set({ doFilterByViews: filterByViews }, () => {
-        updateOptionGroupsState();
-
-        renderAlertMessage(`Filter by views ${filterByViews ? 'enabled' : 'disabled'} successfully!`);
-    });
-});
-
-[getElementById(DOM_ID_VIDEO_VIEWS_MIN), getElementById(DOM_ID_VIDEO_VIEWS_MAX)].forEach((element) => {
-    element.addEventListener('change', () => {
-        const videoViewsMin = Number.parseInt(getElementById(DOM_ID_VIDEO_VIEWS_MIN).value, 10);
-        const videoViewsMax = Number.parseInt(getElementById(DOM_ID_VIDEO_VIEWS_MAX).value, 10);
-
-        if (videoViewsMin >= videoViewsMax) {
-            renderAlertMessage('Minimum views should be less than maximum views!', true);
-            return;
-        }
-
-        chrome.storage.sync.set(
-            {
-                videoViewsMax: videoViewsMax,
-                videoViewsMin: videoViewsMin,
-            },
-            () => {
-                renderAlertMessage('Video views settings updated successfully!');
-            }
-        );
-    });
-});
-
-// Video views mode (fade or hide)
-getElementById(DOM_ID_VIDEO_VIEWS_MODE).addEventListener('change', () => {
-    const mode = getElementById(DOM_ID_VIDEO_VIEWS_MODE).value;
-
-    chrome.storage.sync.set({ videoViewsMode: mode }, () => {
-        renderAlertMessage(`Video views mode set to "${mode}" successfully!`);
-    });
-});
-
-// Categorize subscriptions
-getElementById(DOM_ID_CATEGORIZE_SUBSCRIPTION).addEventListener('click', () => {
-    const categorizeSubscription = getElementById(DOM_ID_CATEGORIZE_SUBSCRIPTION).checked;
-
-    chrome.storage.sync.set({ doCategorizeSubscription: categorizeSubscription }, () => {
-        renderAlertMessage(`Categorize subscriptions ${categorizeSubscription ? 'enabled' : 'disabled'} successfully!`);
-    });
-});
-
-getElementById(DOM_ID_CATEGORY_ADD).addEventListener('click', () => {
-    const categoryName = getElementById(DOM_ID_CATEGORY_NAME).value.trim();
-
-    if (categoryName) {
-        chrome.storage.sync.get([STORAGE_KEY_CATEGORIES], ({ categories = [] }) => {
-            if (categories.some((category) => category.name === categoryName)) {
-                renderAlertMessage(`Category "${categoryName}" already exists!`, true);
+        editor.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const nextName = normalizeName(input.value);
+            if (!nextName) {
+                showAlert(getMessage('nameRequired'), 'error');
                 return;
             }
 
-            const newCategory = { id: Date.now().toString(), name: categoryName };
-            categories.push(newCategory);
-            getElementById(DOM_ID_CATEGORY_NAME).value = '';
+            readSettings(({ categories: currentCategories, channelCategoryAssigned }) => {
+                if (hasDuplicateCategoryName(currentCategories, nextName, category.id)) {
+                    showAlert(getMessage('duplicateCategory', nextName), 'error');
+                    return;
+                }
 
-            // Sort categories alphabetically by name
-            const sortedCategories = [...categories].sort((a, b) => a.name.localeCompare(b.name));
-
-            chrome.storage.sync.set({ categories: sortedCategories }, () => {
-                renderAlertMessage(`Category "${categoryName}" added successfully!`);
-                renderListCategories(sortedCategories);
+                const nextCategories = currentCategories.map((entry) =>
+                    entry.id === category.id ? { ...entry, name: nextName } : entry
+                );
+                saveSettings({ categories: nextCategories }, getMessage('categoryRenamed'), () =>
+                    renderCategories(nextCategories, channelCategoryAssigned)
+                );
             });
         });
+    });
+
+    remove.addEventListener('click', () => {
+        readSettings(({ categories: currentCategories, channelCategoryAssigned }) => {
+            const assignedCount = countAssignments(channelCategoryAssigned, category.id);
+            if (!window.confirm(getMessage('confirmDelete', [category.name, String(assignedCount)]))) {
+                return;
+            }
+
+            const nextCategories = currentCategories.filter(({ id }) => id !== category.id);
+            const nextAssignments = Object.fromEntries(
+                Object.entries(channelCategoryAssigned).filter(([, assignedId]) => assignedId !== category.id)
+            );
+            saveSettings(
+                { categories: nextCategories, channelCategoryAssigned: nextAssignments },
+                getMessage('categoryDeleted'),
+                () => renderCategories(nextCategories, nextAssignments)
+            );
+        });
+    });
+
+    actions.append(rename, remove);
+    item.append(details, actions);
+    return item;
+}
+
+function renderCategories(categories, assignments) {
+    const list = getElement(DOM_IDS.categoriesList);
+    list.replaceChildren();
+
+    if (categories.length === 0) {
+        const empty = document.createElement('li');
+        empty.className = 'sptcl-js-empty-item';
+        empty.textContent = getMessage('noCategories');
+        list.append(empty);
+        return;
     }
-});
 
-// Reset the settings to the default values
-getElementById(DOM_ID_SETTINGS_RESET).addEventListener('click', () => {
-    // Reset the settings to the default values
-    getElementById(DOM_ID_HIDE_WATCHED).checked = false;
-    getElementById(DOM_ID_HIDE_SHORTS).checked = false;
-    getElementById(DOM_ID_HIDE_SUBSCRIPTIONS_EXPANDABLE).checked = false;
+    [...categories]
+        .sort((left, right) => left.name.localeCompare(right.name, undefined, { sensitivity: 'base' }))
+        .forEach((category) => list.append(createCategoryItem(category, categories, assignments)));
+}
 
-    getElementById(DOM_ID_FADE_BY_LENGTH).checked = true;
-    getElementById(DOM_ID_VIDEO_LENGTH_MIN).value = 0;
-    getElementById(DOM_ID_VIDEO_LENGTH_MAX).value = 30;
-    getElementById(DOM_ID_VIDEO_LENGTH_MODE).value = 'fade';
-
-    getElementById(DOM_ID_FILTER_BY_VIEWS).checked = false;
-    getElementById(DOM_ID_VIDEO_VIEWS_MIN).value = 0;
-    getElementById(DOM_ID_VIDEO_VIEWS_MAX).value = 1000000;
-    getElementById(DOM_ID_VIDEO_VIEWS_MODE).value = 'fade';
-
-    getElementById(DOM_ID_CATEGORIZE_SUBSCRIPTION).checked = true;
-
+function applySettingsToForm(settings) {
+    getElement(DOM_IDS.hideShorts).checked = settings.doHideShorts;
+    getElement(DOM_IDS.hideWatched).checked = settings.doHideWatched;
+    getElement(DOM_IDS.hideExpandable).checked = settings.doHideExpandableSections;
+    getElement(DOM_IDS.lengthEnabled).checked = settings.doFadeByLength;
+    getElement(DOM_IDS.lengthMin).value = String(settings.videoLengthMin);
+    getElement(DOM_IDS.lengthMax).value = String(settings.videoLengthMax);
+    getElement(DOM_IDS.lengthMode).value = settings.videoLengthMode;
+    getElement(DOM_IDS.viewsEnabled).checked = settings.doFilterByViews;
+    getElement(DOM_IDS.viewsMin).value = String(settings.videoViewsMin);
+    getElement(DOM_IDS.viewsMax).value = String(settings.videoViewsMax);
+    getElement(DOM_IDS.viewsMode).value = settings.videoViewsMode;
+    getElement(DOM_IDS.categoriesEnabled).checked = settings.doCategorizeSubscription;
     updateOptionGroupsState();
+}
 
-    // Save the settings to Chrome's storage
-    chrome.storage.sync.set(
-        {
-            // General Options
-            doHideShorts: false,
-            doHideWatched: false,
-            doHideExpandableSections: false,
-            // Video Length
-            doFadeByLength: true,
-            videoLengthMode: 'fade',
-            videoLengthMin: 0,
-            videoLengthMax: 30,
-            // Video Views
-            doFilterByViews: false,
-            videoViewsMode: 'fade',
-            videoViewsMin: 0,
-            videoViewsMax: 1000000,
-            // Subscriptions Categories
-            doCategorizeSubscription: true,
-        },
-        () => {
-            renderAlertMessage('Settings has been reset to default!');
-        }
-    );
+function bindBooleanSetting(elementId, storageKey, labelKey, afterSave) {
+    getElement(elementId).addEventListener('change', (event) => {
+        const enabled = event.currentTarget.checked;
+        saveSettings(
+            { [storageKey]: enabled },
+            getMessage(enabled ? 'settingEnabled' : 'settingDisabled', getMessage(labelKey)),
+            afterSave
+        );
+    });
+}
+
+function bindRange(minimumId, maximumId, minimumKey, maximumKey, successKey) {
+    [minimumId, maximumId].forEach((elementId) => {
+        getElement(elementId).addEventListener('change', () => {
+            const minimum = Number.parseInt(getElement(minimumId).value, 10);
+            const maximum = Number.parseInt(getElement(maximumId).value, 10);
+            if (minimum >= maximum) {
+                showAlert(getMessage('minimumBelowMaximum'), 'error');
+                return;
+            }
+            saveSettings({ [minimumKey]: minimum, [maximumKey]: maximum }, getMessage(successKey));
+        });
+    });
+}
+
+bindBooleanSetting(DOM_IDS.hideWatched, 'doHideWatched', 'hideWatchedSetting');
+bindBooleanSetting(DOM_IDS.hideShorts, 'doHideShorts', 'hideShortsSetting');
+bindBooleanSetting(DOM_IDS.hideExpandable, 'doHideExpandableSections', 'hideExpandableSetting');
+bindBooleanSetting(DOM_IDS.lengthEnabled, 'doFadeByLength', 'lengthFilterSetting', updateOptionGroupsState);
+bindBooleanSetting(DOM_IDS.viewsEnabled, 'doFilterByViews', 'viewsFilterSetting', updateOptionGroupsState);
+bindBooleanSetting(DOM_IDS.categoriesEnabled, 'doCategorizeSubscription', 'categoriesSetting');
+
+bindRange(DOM_IDS.lengthMin, DOM_IDS.lengthMax, 'videoLengthMin', 'videoLengthMax', 'lengthUpdated');
+bindRange(DOM_IDS.viewsMin, DOM_IDS.viewsMax, 'videoViewsMin', 'videoViewsMax', 'viewsUpdated');
+
+getElement(DOM_IDS.lengthMode).addEventListener('change', (event) => {
+    saveSettings({ videoLengthMode: event.currentTarget.value }, getMessage('modeUpdated', event.currentTarget.value));
+});
+getElement(DOM_IDS.viewsMode).addEventListener('change', (event) => {
+    saveSettings({ videoViewsMode: event.currentTarget.value }, getMessage('modeUpdated', event.currentTarget.value));
 });
 
-/**
- * Event OnLoad
- */
+getElement(DOM_IDS.categoryForm).addEventListener('submit', (event) => {
+    event.preventDefault();
+    const input = getElement(DOM_IDS.categoryName);
+    const name = normalizeName(input.value);
+    if (!name) {
+        showAlert(getMessage('nameRequired'), 'error');
+        return;
+    }
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Load the settings from Chrome's storage
-    chrome.storage.sync.get(
-        STORAGE_SETTINGS_KEYS,
-        ({
-            doHideShorts,
-            doHideWatched,
-            doHideExpandableSections,
-            doFadeByLength,
-            videoLengthMax,
-            videoLengthMin,
-            doCategorizeSubscription,
-            videoLengthMode,
-            doFilterByViews,
-            videoViewsMin,
-            videoViewsMax,
-            videoViewsMode,
-        }) => {
-            getElementById(DOM_ID_HIDE_WATCHED).checked = doHideWatched;
-            getElementById(DOM_ID_HIDE_SHORTS).checked = doHideShorts;
-            getElementById(DOM_ID_HIDE_SUBSCRIPTIONS_EXPANDABLE).checked = doHideExpandableSections;
-
-            getElementById(DOM_ID_FADE_BY_LENGTH).checked = doFadeByLength;
-            getElementById(DOM_ID_VIDEO_LENGTH_MIN).value = videoLengthMin;
-            getElementById(DOM_ID_VIDEO_LENGTH_MAX).value = videoLengthMax;
-            getElementById(DOM_ID_VIDEO_LENGTH_MODE).value = videoLengthMode || 'fade';
-
-            getElementById(DOM_ID_FILTER_BY_VIEWS).checked = doFilterByViews || false;
-            getElementById(DOM_ID_VIDEO_VIEWS_MIN).value = videoViewsMin ?? 0;
-            getElementById(DOM_ID_VIDEO_VIEWS_MAX).value = videoViewsMax ?? 1000000;
-            getElementById(DOM_ID_VIDEO_VIEWS_MODE).value = videoViewsMode || 'fade';
-
-            getElementById(DOM_ID_CATEGORIZE_SUBSCRIPTION).checked = doCategorizeSubscription;
-
-            updateOptionGroupsState();
+    readSettings(({ categories, channelCategoryAssigned }) => {
+        if (hasDuplicateCategoryName(categories, name)) {
+            showAlert(getMessage('duplicateCategory', name), 'error');
+            return;
         }
-    );
 
-    // Load the categories from Chrome's storage
-    chrome.storage.sync.get([STORAGE_KEY_CATEGORIES], ({ categories = [] }) => {
-        renderListCategories(categories);
+        const nextCategories = [...categories, { id: createCategoryId(), name }];
+        saveSettings({ categories: nextCategories }, getMessage('categoryAdded', name), () => {
+            input.value = '';
+            input.focus();
+            renderCategories(nextCategories, channelCategoryAssigned);
+        });
     });
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-    const versionElement = getElementById(DOM_ID_VERSION);
-    versionElement.textContent = `v${chrome.runtime.getManifest().version}`;
+getElement(DOM_IDS.reset).addEventListener('click', () => {
+    saveSettings(DEFAULT_OPTIONS, getMessage('settingsReset'), () => {
+        readSettings((settings) => applySettingsToForm(settings));
+    });
+});
+
+localizePage();
+document.title = getMessage('optionsTitle');
+getElement(DOM_IDS.version).textContent = `v${chrome.runtime.getManifest().version}`;
+readSettings((settings) => {
+    applySettingsToForm(settings);
+    renderCategories(settings.categories, settings.channelCategoryAssigned);
+});
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName !== 'sync' || !STORAGE_KEYS.some((key) => changes[key])) {
+        return;
+    }
+
+    readSettings((settings) => {
+        applySettingsToForm(settings);
+        if (!document.querySelector('.sptcl-js-category-editor')) {
+            renderCategories(settings.categories, settings.channelCategoryAssigned);
+        }
+    });
 });
