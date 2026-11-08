@@ -83,7 +83,7 @@
   "channelsPage": { "message": "channels listing page" },
   "enableCategoriesTitle": { "message": "Enable subscription categories" },
   "enableCategoriesHelp": {
-    "message": "Shows category filters on subscriptions and category selectors on supported channel lists."
+    "message": "Shows category filters on subscriptions and category selectors on channel profiles and supported channel lists."
   },
   "categoryName": { "message": "Category name" },
   "categoryHelp": { "message": "Creates a category used in subscription filters and channel assignments." },

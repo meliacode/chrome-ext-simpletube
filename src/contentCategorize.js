@@ -1,410 +1,405 @@
 /**
- * Chrome Extension Content Script.
- * Will run on subscriptions page and channel page only.
+ * YouTube subscription category assignment and filtering content script.
  */
 
-/**
- * Constants
- */
+(() => {
+    const { getMessage } = globalThis.extensionI18n;
 
-// Youtube page and blocks selectors
-const YTB_SELECTOR_CHANNEL_PAGE = '.ytd-page-manager[page-subtype="subscriptions-channels"]';
-const YTB_SELECTOR_CHANNEL_RENDERER = 'ytd-channel-renderer';
+    const CHANNELS_PATH = '/feed/channels';
+    const SUBSCRIPTIONS_PATH = '/feed/subscriptions';
+    const SELECTOR_CHANNEL_PAGE = '.ytd-page-manager[page-subtype="subscriptions-channels"]';
+    const SELECTOR_CHANNEL_RENDERER = 'ytd-channel-renderer';
+    const SELECTOR_SUBSCRIPTION_PAGE = '.ytd-page-manager[page-subtype="subscriptions"]';
+    const SELECTOR_SUBSCRIPTION_RENDERER = 'ytd-rich-item-renderer:not(:is(ytd-rich-section-renderer *))';
+    const SELECTOR_CHANNEL_LINK = '#main-link.channel-link';
+    const SELECTOR_CHANNEL_NAME_LINK = 'yt-content-metadata-view-model a.ytAttributedStringLink';
+    const SELECTOR_CHANNEL_ACTIONS = '#buttons';
+    const SELECTOR_PROFILE_HEADER =
+        'ytd-c4-tabbed-header-renderer, ytd-page-header-renderer, page-header-view-model, yt-page-header-view-model';
+    const SELECTOR_PROFILE_SUBSCRIBE = 'ytd-subscribe-button-renderer, yt-subscribe-button-view-model';
 
-const YTB_SELECTOR_SUBSCRIPTION_PAGE = '.ytd-page-manager[page-subtype="subscriptions"]';
-// Select block item but exclude any that are inside a the shorts section
-const YTB_SELECTOR_SUBSCRIPTION_RENDERER = 'ytd-rich-item-renderer:not(:is(ytd-rich-section-renderer *))';
+    const CATEGORY_ALL = '__all__';
+    const CATEGORY_NOT_ASSIGNED = '__unassigned__';
+    const CLASS_CATEGORY_SELECT = 'sptcl-js-category-select';
+    const CLASS_CATEGORY_OPTION = 'sptcl-js-category-option';
+    const CLASS_CHANNEL_FILTER = 'sptcl-js-channel-filter-container';
+    const CLASS_SUBSCRIPTION_FILTER = 'sptcl-js-subscription-filter-container';
+    const CLASS_FILTER_BUTTON = 'sptcl-js-filter-button';
+    const CLASS_HIDE_FILTERED = 'sptcl-js-hide-filtered';
 
-// Youtube channel name selectors
-const SELECTOR_CHANNEL_LINK = '#main-link.channel-link';
-const SELECTOR_CHANNEL_NAME_LINK = 'yt-content-metadata-view-model a.ytAttributedStringLink';
-const SELECTOR_CHANNEL_ACTIONS_CONTAINER = '#buttons';
+    const SETTINGS_KEYS = ['doCategorizeSubscription', 'categories', 'channelCategoryAssigned'];
+    let currentSettings = {
+        doCategorizeSubscription: true,
+        categories: [],
+        channelCategoryAssigned: {},
+    };
+    let activeFilterId = CATEGORY_ALL;
+    let renderTimeoutId;
+    let warningCount = 0;
+    let profileSubscription = null;
 
-// SimpleTube Dropdown category
-const CATEGORY_DD_DEFAULT = 'Category';
-const CLASS_JS_CATEGORY_SELECT = 'sptcl-js-category-select';
-const CLASS_JS_CATEGORY_OPTION = 'sptcl-js-category-option';
-
-// SimpleTube Filter
-const CATEGORY_ALL = 'All';
-const CATEGORY_NOT_ASSIGNED = 'Not Assigned';
-
-const CLASS_JS_FILTER_CONTAINER_CHANNEL = 'sptcl-js-channel-filter-container';
-const CLASS_JS_FILTER_CONTAINER_SUBSCRIPTION = 'sptcl-js-subscription-filter-container';
-const CLASS_JS_FILTER_BUTTON = 'sptcl-js-filter-button';
-const CLASS_JS_HIDE_FILTERED = 'sptcl-js-hide-filtered';
-
-const SELECTOR_FILTER_BUTTON = '.sptcl-js-filter-button';
-
-/**
- * Helper Functions
- */
-
-let warningCounter = 0;
-const warnMissingSelector = (selector, context) => {
-    if (warningCounter > 5) return; // prevent spamming the console with warnings
-    warningCounter++;
-
-    if (context) {
-        console.log(`[SimpleTube] Selector "${selector}" not found.`, JSON.stringify(context));
-    } else {
-        console.log(`[SimpleTube] Selector "${selector}" not found.`);
-    }
-};
-
-// Get the channel name from the channel block
-function getChannelName(block, isChannelPage = false) {
-    const channelLink = isChannelPage
-        ? block.querySelector(SELECTOR_CHANNEL_LINK)
-        : block.querySelector(SELECTOR_CHANNEL_NAME_LINK);
-
-    // Log a warning when the expected selector isn't present on the block
-    if (!channelLink) {
-        const missingSelector = isChannelPage ? SELECTOR_CHANNEL_LINK : SELECTOR_CHANNEL_NAME_LINK;
-        warnMissingSelector(missingSelector, block);
+    function warnMissingSelector(selector) {
+        if (warningCount >= 5) {
+            return;
+        }
+        warningCount += 1;
+        console.warn(`[SimpleTube] Selector "${selector}" was not found.`);
     }
 
-    // get the channel name from the link href, remove the leasding slash, and trim the whitespace, and lowercase the channel name for consistency
-    const channelNameArr = channelLink?.href?.split('/') || [];
-    const channelName = channelNameArr[channelNameArr.length - 1]?.trim()?.toLowerCase() || '';
-
-    return channelName;
-}
-
-// Render filter buttons for each categories
-function renderButtonsFilters(filterContainer, categoriesList) {
-    categoriesList.forEach(({ id, name }) => {
-        const filterButton = document.createElement('span');
-        filterButton.textContent = name;
-        filterButton.dataset.categoryId = id;
-        filterButton.classList.add(CLASS_JS_FILTER_BUTTON);
-
-        // Set the default filter to "All" when the page is loaded
-        if (name === CATEGORY_ALL) {
-            filterButton.dataset.active = 'true';
+    function getChannelName(block, isChannelPage = false) {
+        const channelLink = block.querySelector(isChannelPage ? SELECTOR_CHANNEL_LINK : SELECTOR_CHANNEL_NAME_LINK);
+        if (!channelLink?.href) {
+            return '';
         }
 
-        filterButton.addEventListener('click', () => {
-            // Add an attribute data-active="true" to the selected filter
-            const btns = filterContainer.querySelectorAll(SELECTOR_FILTER_BUTTON);
-            if (!btns.length) {
-                warnMissingSelector(SELECTOR_FILTER_BUTTON, filterContainer);
-            }
-            btns.forEach((btn) => {
-                delete btn.dataset.active;
-            });
+        try {
+            const channelUrl = new URL(channelLink.href, window.location.origin);
+            return decodeURIComponent(channelUrl.pathname.split('/').filter(Boolean).at(-1) || '').toLocaleLowerCase(
+                'en-US'
+            );
+        } catch {
+            return '';
+        }
+    }
 
-            filterButton.dataset.active = 'true';
+    function getSortedCategories() {
+        return [...currentSettings.categories].sort((left, right) =>
+            left.name.localeCompare(right.name, undefined, { sensitivity: 'base' })
+        );
+    }
+
+    function getAssignedCategories() {
+        const assignedCategoryIds = new Set(Object.values(currentSettings.channelCategoryAssigned));
+        return getSortedCategories().filter(({ id }) => assignedCategoryIds.has(id));
+    }
+
+    function getFilterDefinitions(includeUnassigned = false) {
+        const categories = includeUnassigned ? getSortedCategories() : getAssignedCategories();
+        return [
+            { id: CATEGORY_ALL, name: getMessage('allCategories') },
+            ...categories,
+            ...(includeUnassigned ? [{ id: CATEGORY_NOT_ASSIGNED, name: getMessage('unassigned') }] : []),
+        ];
+    }
+
+    function setActiveFilter(filterContainer, categoryId) {
+        activeFilterId = categoryId;
+        filterContainer.querySelectorAll(`.${CLASS_FILTER_BUTTON}`).forEach((button) => {
+            if (button.dataset.categoryId === activeFilterId) {
+                button.dataset.active = 'true';
+            } else {
+                delete button.dataset.active;
+            }
+        });
+    }
+
+    function applyFilter(pageContainer, itemSelector, isChannelPage) {
+        pageContainer.querySelectorAll(itemSelector).forEach((item) => {
+            const channelName = getChannelName(item, isChannelPage);
+            const assignedCategoryId = currentSettings.channelCategoryAssigned[channelName];
+            const shouldShow =
+                activeFilterId === CATEGORY_ALL ||
+                (activeFilterId === CATEGORY_NOT_ASSIGNED
+                    ? !assignedCategoryId
+                    : assignedCategoryId === activeFilterId);
+            item.classList.toggle(CLASS_HIDE_FILTERED, !shouldShow);
+        });
+    }
+
+    function renderFilter(pageContainer, containerClass, itemSelector, isChannelPage, includeUnassigned) {
+        const filterDefinitions = getFilterDefinitions(includeUnassigned);
+        if (!filterDefinitions.some(({ id }) => id === activeFilterId)) {
+            activeFilterId = CATEGORY_ALL;
+        }
+
+        let filterContainer = pageContainer.querySelector(`.${containerClass}`);
+        if (!filterContainer) {
+            filterContainer = document.createElement('div');
+            filterContainer.className = containerClass;
+            pageContainer.prepend(filterContainer);
+        }
+
+        const signature = filterDefinitions.map(({ id, name }) => `${id}:${name}`).join('|');
+        if (filterContainer.dataset.signature !== signature) {
+            const buttons = filterDefinitions.map(({ id, name }) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = CLASS_FILTER_BUTTON;
+                button.dataset.categoryId = id;
+                button.textContent = name;
+                button.addEventListener('click', () => {
+                    setActiveFilter(filterContainer, id);
+                    applyFilter(pageContainer, itemSelector, isChannelPage);
+                });
+                return button;
+            });
+            filterContainer.replaceChildren(...buttons);
+            filterContainer.dataset.signature = signature;
+        }
+
+        setActiveFilter(filterContainer, activeFilterId);
+        applyFilter(pageContainer, itemSelector, isChannelPage);
+    }
+
+    function createCategorySelect(channelName) {
+        const select = document.createElement('select');
+        select.className = CLASS_CATEGORY_SELECT;
+        select.dataset.channelName = channelName;
+        select.setAttribute('aria-label', getMessage('categoryForChannel', channelName));
+
+        const unassignedOption = document.createElement('option');
+        unassignedOption.value = '';
+        unassignedOption.textContent = getMessage('categoryDropdown');
+        unassignedOption.className = CLASS_CATEGORY_OPTION;
+        select.append(unassignedOption);
+
+        getSortedCategories().forEach(({ id, name }) => {
+            const option = document.createElement('option');
+            option.value = id;
+            option.textContent = name;
+            option.className = CLASS_CATEGORY_OPTION;
+            select.append(option);
         });
 
-        filterContainer.appendChild(filterButton);
-    });
-}
-
-// Apply the selected filter to the content
-function applyFilterToContent(contentList, selectedCategoryId, channelCategoryAssignTable, forChannelPage) {
-    // Apply the selected filter to the channels
-    contentList.forEach((block) => {
-        const channelName = getChannelName(block, forChannelPage);
-
-        let shouldShow = false;
-
-        if (selectedCategoryId === CATEGORY_NOT_ASSIGNED) {
-            // Show the content only if the channel is not assigned to any category
-            shouldShow = !channelCategoryAssignTable[channelName];
-        } else {
-            // Show the content when the channel is assigned to the selected category
-            shouldShow = channelCategoryAssignTable[channelName] === selectedCategoryId;
-        }
-
-        if (shouldShow) {
-            block.classList.remove(CLASS_JS_HIDE_FILTERED);
-        } else {
-            block.classList.add(CLASS_JS_HIDE_FILTERED);
-        }
-    });
-}
-
-// Apply the default "All" filter to the content
-function applyDefaultFilter(contentList) {
-    contentList.forEach((block) => {
-        block.classList.remove(CLASS_JS_HIDE_FILTERED);
-    });
-}
-
-// Get assigned categories (only categories with at least one channel assigned)
-function getAssignedCategories(categories, channelCategoryAssignTable) {
-    return categories.filter((category) => {
-        return Object.values(channelCategoryAssignTable).includes(category.id);
-    });
-}
-
-// Observe changes in the subscriptions page and reapply filters
-function observeSubscriptionsPage(subscriptionsPageContainer, channelCategoryAssignTable) {
-    const observer = new MutationObserver(() => {
-        const activeFilterButton = subscriptionsPageContainer.querySelector(
-            `${SELECTOR_FILTER_BUTTON}[data-active="true"]`
-        );
-
-        if (!activeFilterButton) {
-            warnMissingSelector(`${SELECTOR_FILTER_BUTTON}[data-active="true"]`, subscriptionsPageContainer);
-        }
-
-        if (activeFilterButton) {
-            const contentList = subscriptionsPageContainer.querySelectorAll(YTB_SELECTOR_SUBSCRIPTION_RENDERER);
-            if (!contentList.length) {
-                warnMissingSelector(YTB_SELECTOR_SUBSCRIPTION_RENDERER, subscriptionsPageContainer);
-            }
-            const category = activeFilterButton.dataset.categoryId;
-            const forChannelPage = false;
-
-            if (category === CATEGORY_ALL) {
-                applyDefaultFilter(contentList);
+        select.value = currentSettings.channelCategoryAssigned[channelName] || '';
+        select.addEventListener('change', () => {
+            const nextAssignments = { ...currentSettings.channelCategoryAssigned };
+            if (select.value) {
+                nextAssignments[channelName] = select.value;
             } else {
-                applyFilterToContent(contentList, category, channelCategoryAssignTable, forChannelPage);
+                delete nextAssignments[channelName];
             }
+
+            currentSettings = { ...currentSettings, channelCategoryAssigned: nextAssignments };
+            chrome.storage.sync.set({ channelCategoryAssigned: nextAssignments }, () => {
+                if (chrome.runtime.lastError) {
+                    loadSettings(scheduleRender);
+                    return;
+                }
+                scheduleRender();
+            });
+        });
+        return select;
+    }
+
+    function renderChannelDropdowns() {
+        const categorySignature = getSortedCategories()
+            .map(({ id, name }) => `${id}:${name}`)
+            .join('|');
+
+        document.querySelectorAll(SELECTOR_CHANNEL_RENDERER).forEach((channelBlock) => {
+            const actionsContainer = channelBlock.querySelector(SELECTOR_CHANNEL_ACTIONS);
+            const channelName = getChannelName(channelBlock, true);
+            if (!actionsContainer || !channelName) {
+                return;
+            }
+
+            const existingSelect = actionsContainer.querySelector(`.${CLASS_CATEGORY_SELECT}`);
+            const isCurrent =
+                existingSelect?.dataset.channelName === channelName &&
+                existingSelect?.dataset.categorySignature === categorySignature;
+            if (isCurrent) {
+                existingSelect.value = currentSettings.channelCategoryAssigned[channelName] || '';
+                return;
+            }
+
+            const select = createCategorySelect(channelName);
+            select.dataset.categorySignature = categorySignature;
+            existingSelect?.remove();
+            actionsContainer.append(select);
+        });
+    }
+
+    function renderProfileDropdown(path) {
+        const match = path.match(/^\/(?:(@[^/]+)|(?:channel|c|user)\/[^/]+)(?:\/|$)/i);
+        const header =
+            match &&
+            [...document.querySelectorAll(SELECTOR_PROFILE_HEADER)].find(
+                (element) => !element.closest('ytd-browse[hidden]') && element.querySelector(SELECTOR_PROFILE_SUBSCRIBE)
+            );
+        const subscribe = header?.querySelector(SELECTOR_PROFILE_SUBSCRIBE);
+        if (!header || !subscribe) {
+            profileSubscription = null;
+            document.querySelectorAll(`.${CLASS_CATEGORY_SELECT}`).forEach((select) => select.remove());
+            return;
+        }
+
+        const handleLink = header.querySelector('a[href^="/@"], a[href^="https://www.youtube.com/@"]');
+        const handleText = header.querySelector('yt-content-metadata-view-model')?.textContent.match(/@[^\s·]+/)?.[0];
+        let channelName;
+        try {
+            const handle = match[1] || (handleLink ? new URL(handleLink.href).pathname.split('/')[1] : handleText);
+            channelName = decodeURIComponent(handle || '').toLocaleLowerCase('en-US');
+            if (match[1] && channelName !== decodeURIComponent(match[1]).toLocaleLowerCase('en-US')) {
+                profileSubscription = null;
+                header.querySelector(`.${CLASS_CATEGORY_SELECT}`)?.remove();
+                return;
+            }
+        } catch {
+            return;
+        }
+        if (!channelName?.startsWith('@')) {
+            profileSubscription = null;
+            header.querySelector(`.${CLASS_CATEGORY_SELECT}`)?.remove();
+            return;
+        }
+
+        // The modern button uses different shapes for the subscription and
+        // notification actions. Treat unrecognized markup as an unknown state.
+        let subscribed = null;
+        if (subscribe.matches('ytd-subscribe-button-renderer')) {
+            subscribed = subscribe.hasAttribute('subscribed');
+        } else {
+            const button = subscribe.querySelector('.ytSubscribeButtonViewModelContainer > button');
+            if (button?.classList.contains('ytSpecButtonShapeNextIconLeadingTrailing')) {
+                subscribed = true;
+            } else if (button?.classList.contains('ytSpecButtonShapeNextFilled')) {
+                subscribed = false;
+            }
+        }
+        if (
+            profileSubscription?.channelName === channelName &&
+            profileSubscription.subscribed &&
+            subscribed === false
+        ) {
+            const nextAssignments = { ...currentSettings.channelCategoryAssigned };
+            if (Object.hasOwn(nextAssignments, channelName)) {
+                delete nextAssignments[channelName];
+                currentSettings = { ...currentSettings, channelCategoryAssigned: nextAssignments };
+                chrome.storage.sync.set({ channelCategoryAssigned: nextAssignments }, () => {
+                    if (chrome.runtime.lastError) {
+                        loadSettings(scheduleRender);
+                    }
+                });
+            }
+        }
+        if (subscribed !== null) {
+            profileSubscription = { channelName, subscribed };
+        }
+        if (subscribed !== true) {
+            header.querySelector(`.${CLASS_CATEGORY_SELECT}`)?.remove();
+            return;
+        }
+
+        const categorySignature = getSortedCategories()
+            .map(({ id, name }) => `${id}:${name}`)
+            .join('|');
+        let select = header.querySelector(`.${CLASS_CATEGORY_SELECT}`);
+        if (select?.dataset.channelName !== channelName || select?.dataset.categorySignature !== categorySignature) {
+            select?.remove();
+            select = createCategorySelect(channelName);
+            select.dataset.categorySignature = categorySignature;
+            select.classList.add('sptcl-js-profile-category-select');
+            subscribe.insertAdjacentElement('afterend', select);
+        } else if (select.previousElementSibling !== subscribe) {
+            subscribe.insertAdjacentElement('afterend', select);
+        }
+        select.value = currentSettings.channelCategoryAssigned[channelName] || '';
+    }
+
+    function clearInjectedUi() {
+        document
+            .querySelectorAll(`.${CLASS_CATEGORY_SELECT}, .${CLASS_CHANNEL_FILTER}, .${CLASS_SUBSCRIPTION_FILTER}`)
+            .forEach((element) => element.remove());
+        document
+            .querySelectorAll(`.${CLASS_HIDE_FILTERED}`)
+            .forEach((element) => element.classList.remove(CLASS_HIDE_FILTERED));
+    }
+
+    function render() {
+        if (!currentSettings.doCategorizeSubscription) {
+            profileSubscription = null;
+            clearInjectedUi();
+            return;
+        }
+
+        const path = window.location.pathname.replace(/\/$/, '');
+        if (path === CHANNELS_PATH) {
+            profileSubscription = null;
+            document.querySelectorAll('.sptcl-js-profile-category-select').forEach((select) => select.remove());
+            document.querySelector(`.${CLASS_SUBSCRIPTION_FILTER}`)?.remove();
+            renderChannelDropdowns();
+            const channelPage = document.querySelector(SELECTOR_CHANNEL_PAGE);
+            if (channelPage) {
+                renderFilter(channelPage, CLASS_CHANNEL_FILTER, SELECTOR_CHANNEL_RENDERER, true, true);
+            } else {
+                warnMissingSelector(SELECTOR_CHANNEL_PAGE);
+            }
+            return;
+        }
+
+        if (path === SUBSCRIPTIONS_PATH) {
+            profileSubscription = null;
+            document
+                .querySelectorAll(`.${CLASS_CATEGORY_SELECT}, .${CLASS_CHANNEL_FILTER}`)
+                .forEach((element) => element.remove());
+            const subscriptionsPage = document.querySelector(SELECTOR_SUBSCRIPTION_PAGE);
+            if (subscriptionsPage) {
+                renderFilter(
+                    subscriptionsPage,
+                    CLASS_SUBSCRIPTION_FILTER,
+                    SELECTOR_SUBSCRIPTION_RENDERER,
+                    false,
+                    false
+                );
+            } else {
+                warnMissingSelector(SELECTOR_SUBSCRIPTION_PAGE);
+            }
+            return;
+        }
+
+        document
+            .querySelectorAll(`.${CLASS_CHANNEL_FILTER}, .${CLASS_SUBSCRIPTION_FILTER}`)
+            .forEach((element) => element.remove());
+        document
+            .querySelectorAll(`.${CLASS_HIDE_FILTERED}`)
+            .forEach((element) => element.classList.remove(CLASS_HIDE_FILTERED));
+        document
+            .querySelectorAll(`.${CLASS_CATEGORY_SELECT}:not(.sptcl-js-profile-category-select)`)
+            .forEach((element) => element.remove());
+        renderProfileDropdown(path);
+    }
+
+    function scheduleRender() {
+        window.clearTimeout(renderTimeoutId);
+        renderTimeoutId = window.setTimeout(render, 350);
+    }
+
+    function loadSettings(callback = render) {
+        chrome.storage.sync.get(SETTINGS_KEYS, (stored) => {
+            currentSettings = {
+                doCategorizeSubscription: stored.doCategorizeSubscription !== false,
+                categories: Array.isArray(stored.categories) ? stored.categories : [],
+                channelCategoryAssigned:
+                    stored.channelCategoryAssigned && typeof stored.channelCategoryAssigned === 'object'
+                        ? stored.channelCategoryAssigned
+                        : {},
+            };
+            callback();
+        });
+    }
+
+    new MutationObserver((mutations) => {
+        if (
+            mutations.some(
+                (mutation) =>
+                    mutation.attributeName !== 'class' || mutation.target.closest?.(SELECTOR_PROFILE_SUBSCRIBE)
+            )
+        ) {
+            scheduleRender();
+        }
+    }).observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['href', 'subscribed', 'class'],
+        childList: true,
+        subtree: true,
+    });
+
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+        if (areaName === 'sync' && SETTINGS_KEYS.some((key) => changes[key])) {
+            loadSettings();
         }
     });
 
-    observer.observe(subscriptionsPageContainer, { childList: true, subtree: true });
-}
-
-/**
- * Main
- */
-
-chrome.storage.sync.get(
-    ['doCategorizeSubscription', 'categories', 'channelCategoryAssigned'],
-    ({ doCategorizeSubscription, categories, channelCategoryAssigned }) => {
-        // Sort categories alphabetically by name
-        categories.sort((a, b) => a.name.localeCompare(b.name));
-
-        /**
-         * Channel Page
-         */
-
-        // Dropdown for Category Assignment
-        const renderChannelsPageCategoryDropdown = () => {
-            // Get all channel blocks
-            const channelBlocks = document.querySelectorAll(YTB_SELECTOR_CHANNEL_RENDERER);
-
-            // If the page doesn't have any channel, skip (warn as requested)
-            if (!channelBlocks.length) {
-                warnMissingSelector(YTB_SELECTOR_CHANNEL_RENDERER);
-                return;
-            }
-
-            // Add a dropdown for each channel to select categories
-            channelBlocks.forEach((channelBlockEl) => {
-                // Get DOM elements
-                const actionsContainer = channelBlockEl.querySelector(SELECTOR_CHANNEL_ACTIONS_CONTAINER);
-
-                // Warn and skip this channel block if we can't find the actions container
-                if (!actionsContainer) {
-                    warnMissingSelector(SELECTOR_CHANNEL_ACTIONS_CONTAINER, channelBlockEl);
-                    return; // skip this channel block
-                }
-
-                // If the dropdown already exists, skip
-                const existingDropdowns = actionsContainer.querySelectorAll(`.${CLASS_JS_CATEGORY_SELECT}`);
-                // don't warn here — absence of dropdowns is expected for new blocks
-                if (existingDropdowns.length > 0) return;
-
-                // Get channel name
-                const channelName = getChannelName(channelBlockEl, true);
-
-                // Create the category dropdown
-                const dropdown = document.createElement('select');
-                dropdown.classList.add(CLASS_JS_CATEGORY_SELECT);
-
-                // Create a default option
-                const defaultOption = document.createElement('option');
-                defaultOption.text = CATEGORY_DD_DEFAULT;
-                defaultOption.classList.add(CLASS_JS_CATEGORY_OPTION);
-
-                dropdown.appendChild(defaultOption);
-
-                // Create each categories as an option
-                categories.forEach(({ id, name }) => {
-                    const option = document.createElement('option');
-                    option.text = name;
-                    option.value = id;
-                    option.classList.add(CLASS_JS_CATEGORY_OPTION);
-
-                    // Set the selected option if the category is already assigned
-                    if (channelCategoryAssigned[channelName] === id) {
-                        option.selected = true;
-                    }
-
-                    dropdown.appendChild(option);
-                });
-
-                // Add event listener to save the selected category
-                dropdown.addEventListener('change', () => {
-                    if (dropdown.value === CATEGORY_DD_DEFAULT) {
-                        // Remove the category from the assigned list if the default option is selected
-                        delete channelCategoryAssigned[channelName];
-                    } else {
-                        // Save the selected category
-                        channelCategoryAssigned[channelName] = dropdown.value;
-                    }
-
-                    // Save the updated assigned list to storage
-                    chrome.storage.sync.set({ channelCategoryAssigned });
-                });
-
-                // Append the dropdown to the channel actions container
-                actionsContainer.appendChild(dropdown);
-            });
-        };
-
-        // Filter Channels by Category Buttons
-        const renderChannelsPageFilters = () => {
-            // Get DOM elements
-            const channelPageContainer = document.querySelector(YTB_SELECTOR_CHANNEL_PAGE);
-
-            if (!channelPageContainer) {
-                warnMissingSelector(YTB_SELECTOR_CHANNEL_PAGE);
-                return;
-            }
-
-            // If filters do not exist, do create them...
-            if (!channelPageContainer.querySelectorAll(`.${CLASS_JS_FILTER_CONTAINER_CHANNEL}`).length) {
-                // Create the filters container
-                const filterContainer = document.createElement('div');
-                filterContainer.classList.add(CLASS_JS_FILTER_CONTAINER_CHANNEL);
-
-                // Create filter buttons
-                renderButtonsFilters(filterContainer, [
-                    { id: CATEGORY_ALL, name: CATEGORY_ALL },
-                    ...categories,
-                    { id: CATEGORY_NOT_ASSIGNED, name: CATEGORY_NOT_ASSIGNED },
-                ]);
-
-                // Append the filters to the primary container
-                channelPageContainer.prepend(filterContainer);
-            }
-
-            // Attach filter onclick event
-            const filterButtons = channelPageContainer.querySelectorAll(SELECTOR_FILTER_BUTTON);
-            if (!filterButtons.length) {
-                warnMissingSelector(SELECTOR_FILTER_BUTTON, channelPageContainer);
-                return;
-            }
-
-            filterButtons.forEach((filterButton) => {
-                filterButton.addEventListener('click', () => {
-                    const contentList = channelPageContainer.querySelectorAll(YTB_SELECTOR_CHANNEL_RENDERER);
-                    if (!contentList.length) {
-                        warnMissingSelector(YTB_SELECTOR_CHANNEL_RENDERER, channelPageContainer);
-                    }
-                    const categoryId = filterButton.dataset.categoryId;
-                    const forChannelPage = true;
-
-                    if (categoryId === CATEGORY_ALL) {
-                        applyDefaultFilter(contentList);
-                    } else {
-                        applyFilterToContent(contentList, categoryId, channelCategoryAssigned, forChannelPage);
-                    }
-                });
-            });
-        };
-
-        /**
-         * Subscriptions Page
-         */
-
-        // Filter Subscriptions by Category Buttons
-        const renderSubscriptionsPageFilters = () => {
-            // Get DOM elements
-            const subscriptionsPageContainer = document.querySelector(YTB_SELECTOR_SUBSCRIPTION_PAGE);
-
-            if (!subscriptionsPageContainer) {
-                warnMissingSelector(YTB_SELECTOR_SUBSCRIPTION_PAGE);
-                return;
-            }
-
-            // If filters do not exist, do create them...
-            if (!subscriptionsPageContainer.querySelectorAll(`.${CLASS_JS_FILTER_CONTAINER_SUBSCRIPTION}`).length) {
-                // Create the filters container
-                const filterContainer = document.createElement('div');
-                filterContainer.classList.add(CLASS_JS_FILTER_CONTAINER_SUBSCRIPTION);
-
-                // Create filter buttons
-                const assignedCategories = getAssignedCategories(categories, channelCategoryAssigned);
-                renderButtonsFilters(filterContainer, [
-                    { id: CATEGORY_ALL, name: CATEGORY_ALL },
-                    ...assignedCategories,
-                ]);
-
-                // Append the filters to the primary container
-                subscriptionsPageContainer.prepend(filterContainer);
-            }
-
-            // Attach filter onclick event
-            const filterButtons = subscriptionsPageContainer.querySelectorAll(SELECTOR_FILTER_BUTTON);
-            if (!filterButtons.length) {
-                warnMissingSelector(SELECTOR_FILTER_BUTTON, subscriptionsPageContainer);
-                return;
-            }
-
-            filterButtons.forEach((filterButton) => {
-                filterButton.addEventListener('click', () => {
-                    const contentList = subscriptionsPageContainer.querySelectorAll(YTB_SELECTOR_SUBSCRIPTION_RENDERER);
-                    if (!contentList.length) {
-                        warnMissingSelector(YTB_SELECTOR_SUBSCRIPTION_RENDERER, subscriptionsPageContainer);
-                    }
-                    const categoryId = filterButton.dataset.categoryId;
-                    const forChannelPage = false;
-
-                    if (categoryId === CATEGORY_ALL) {
-                        applyDefaultFilter(contentList);
-                    } else {
-                        applyFilterToContent(contentList, categoryId, channelCategoryAssigned, forChannelPage);
-                    }
-                });
-            });
-
-            // Observe changes in the subscriptions page
-            observeSubscriptionsPage(subscriptionsPageContainer, channelCategoryAssigned);
-        };
-
-        /**
-         * Run
-         */
-
-        // Initial run and reactive updates using MutationObserver
-        if (doCategorizeSubscription) {
-            const runOnce = () => {
-                if (globalThis.location.pathname === '/feed/channels') {
-                    renderChannelsPageCategoryDropdown();
-                    renderChannelsPageFilters();
-                }
-
-                if (globalThis.location.pathname === '/feed/subscriptions') {
-                    renderSubscriptionsPageFilters();
-                }
-            };
-
-            // Run once at startup
-            runOnce();
-
-            // Debounce helper
-            const debounce = (fn, wait = 300) => {
-                let t = null;
-                return (...args) => {
-                    if (t) clearTimeout(t);
-                    t = setTimeout(() => fn(...args), wait);
-                };
-            };
-
-            // Observe the document body and run the appropriate renderers when the DOM changes
-            const onMutations = debounce(() => {
-                runOnce();
-            }, 350);
-
-            const observer = new MutationObserver(onMutations);
-            observer.observe(document.body, { childList: true, subtree: true });
-        }
-    }
-);
+    loadSettings();
+})();
