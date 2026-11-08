@@ -14,6 +14,8 @@
 - `src/options.html`, `src/options.js`, `src/options.css`, `src/styles.css`: settings and category management.
 - `src/content.js`, `src/content.css`: watched, Shorts, expandable-section, duration, and view-count filters.
 - `src/contentCategorize.js`, `src/contentCategorize.css`: subscription assignment and category filters.
+- `src/_locales/`: extension-facing localized strings.
+- `src/i18n.js`: shared `chrome.i18n` lookup and options-page localization helpers.
 - `README.md`, `CHANGELOG.md`, and `PUBLISHING.md`: behavior, release history, and packaging procedure.
 
 ## Development workflow
@@ -33,6 +35,7 @@
 - Do not add network calls, analytics, telemetry, or collection of browsing data unless explicitly requested.
 - Treat the background service worker as ephemeral; persist required state in Chrome storage rather than globals.
 - Keep injected DOM and CSS names narrowly scoped to avoid collisions with the host page.
+- Keep user-facing strings in `src/_locales/en/messages.json`; use message keys rather than translated labels as stored values or internal IDs.
 - Do not edit generated archives or `src/simpletube-src.crx` unless the task is specifically about a release artifact.
 
 ## Application rules

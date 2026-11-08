@@ -71,10 +71,12 @@ The package command creates `dist/releases/simpletube-v<version>.zip`. The archi
 src/
 ├── manifest.json          # Manifest V3 configuration and YouTube content-script matches
 ├── background.js          # Initializes storage defaults and install/update behavior
+├── i18n.js                # Shared Chrome i18n helpers for extension pages and content scripts
 ├── content.js             # Applies general video and section filters
 ├── content.css            # Styles general filter states
 ├── contentCategorize.js   # Injects category assignment and subscription filters
 ├── contentCategorize.css  # Styles category controls
+├── _locales/              # English extension interface strings
 ├── options.html           # Options-page markup
 ├── options.js             # Settings and category management
 ├── options.css            # Options-page component styles
