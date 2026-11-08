@@ -1,10 +1,5 @@
 /**
- * Chrome Extension Content Script.
- * Will run on all YouTube page.
- */
-
-/**
- * Constants
+ * General YouTube filtering content script.
  */
 
 const SELECTOR_VIDEO_ITEM = [
@@ -29,250 +24,172 @@ const CLASS_JS_HIDE_SHORTS = 'sptcl-js-hide-shorts';
 const CLASS_JS_HIDE_WATCHED = 'sptcl-js-hide-watched';
 const CLASS_JS_HIDE_EXPANDABLE = 'sptcl-js-hide-expandable';
 
-/**
- * Main
- */
+const DEFAULT_SETTINGS = {
+    doHideShorts: false,
+    doHideWatched: false,
+    doHideExpandableSections: false,
+    doFadeByLength: true,
+    videoLengthMin: 0,
+    videoLengthMax: 30,
+    videoLengthMode: 'fade',
+    doFilterByViews: false,
+    videoViewsMin: 0,
+    videoViewsMax: 1000000,
+    videoViewsMode: 'fade',
+};
+const SETTINGS_KEYS = Object.keys(DEFAULT_SETTINGS);
 
-chrome.storage.sync.get(
-    [
-        'doHideShorts',
-        'doHideWatched',
-        'doHideExpandableSections',
-        'doFadeByLength',
-        'videoLengthMin',
-        'videoLengthMax',
-        'videoLengthMode',
-        'doFilterByViews',
-        'videoViewsMin',
-        'videoViewsMax',
-        'videoViewsMode',
-    ],
-    ({
-        doHideShorts,
-        doHideWatched,
-        doHideExpandableSections,
-        doFadeByLength,
-        videoLengthMin,
-        videoLengthMax,
-        videoLengthMode = 'fade',
-        doFilterByViews = false,
-        videoViewsMin = 0,
-        videoViewsMax = 1000000,
-        videoViewsMode = 'fade',
-    }) => {
-        /**
-         * Filters videos
-         */
+let currentSettings = { ...DEFAULT_SETTINGS };
+let renderTimeoutId;
 
-        // Hide watched videos (if the option is enabled)
-        const hideWatchedVideos = () => {
-            const videoElements = document.querySelectorAll(SELECTOR_VIDEO_ITEM);
+function getVideoElements() {
+    return document.querySelectorAll(SELECTOR_VIDEO_ITEM);
+}
 
-            videoElements.forEach((video) => {
-                const progressBar = video.querySelector(SELECTOR_WATCHED_PROGRESS);
+function hideWatchedVideos() {
+    getVideoElements().forEach((video) => {
+        const shouldHide = currentSettings.doHideWatched && video.querySelector(SELECTOR_WATCHED_PROGRESS);
+        video.classList.toggle(CLASS_JS_HIDE_WATCHED, Boolean(shouldHide));
+    });
+}
 
-                if (doHideWatched && progressBar) {
-                    video.classList.add(CLASS_JS_HIDE_WATCHED);
-                } else {
-                    video.classList.remove(CLASS_JS_HIDE_WATCHED);
-                }
-            });
-        };
+function hideShortsSections() {
+    document.querySelectorAll(SELECTOR_SHORTS_SECTION).forEach((section) => {
+        section.classList.toggle(CLASS_JS_HIDE_SHORTS, currentSettings.doHideShorts);
+    });
+}
 
-        // Hide shorts sections (if the option is enabled)
-        const hideShortsSections = () => {
-            const shortsSections = document.querySelectorAll(SELECTOR_SHORTS_SECTION);
+function hideExpandableSections() {
+    document.querySelectorAll(SELECTOR_EXPANDABLE_SECTION).forEach((section) => {
+        section.classList.toggle(CLASS_JS_HIDE_EXPANDABLE, currentSettings.doHideExpandableSections);
+    });
+}
 
-            shortsSections.forEach((shorts) => {
-                if (doHideShorts) {
-                    shorts.classList.add(CLASS_JS_HIDE_SHORTS);
-                } else {
-                    shorts.classList.remove(CLASS_JS_HIDE_SHORTS);
-                }
-            });
-        };
-
-        // Hide expandable sections on subscriptions page (if the option is enabled)
-        const hideExpandableSections = () => {
-            const expandableSections = document.querySelectorAll(SELECTOR_EXPANDABLE_SECTION);
-
-            expandableSections.forEach((section) => {
-                if (doHideExpandableSections) {
-                    section.classList.add(CLASS_JS_HIDE_EXPANDABLE);
-                } else {
-                    section.classList.remove(CLASS_JS_HIDE_EXPANDABLE);
-                }
-            });
-        };
-
-        // Apply video length filter (fade or hide) based on settings
-        const applyVideoLengthFilter = () => {
-            if (!doFadeByLength) return;
-
-            // Select all video elements on the YouTube page
-            const videoElements = document.querySelectorAll(SELECTOR_VIDEO_ITEM);
-
-            videoElements.forEach((video) => {
-                // Find the element that contains the video duration
-                const timeElement = video.querySelector(SELECTOR_VIDEO_DURATION);
-
-                if (!timeElement) return;
-
-                // Split the duration text into parts (e.g., "12:34" or "1:02:34")
-                const timeParts = timeElement.textContent.trim().split(':').map(Number);
-                let videoMinutes = 0;
-
-                // Calculate the video length in minutes
-                if (timeParts.length === 2) {
-                    // Format MM:SS
-                    videoMinutes = timeParts[0] + timeParts[1] / 60;
-                } else if (timeParts.length === 3) {
-                    // Format HH:MM:SS
-                    videoMinutes = timeParts[0] * 60 + timeParts[1] + timeParts[2] / 60;
-                }
-
-                const outOfRange = videoMinutes < videoLengthMin || videoMinutes > videoLengthMax;
-
-                // Logic to either hide or fade the video based on the mode
-                if (videoLengthMode === 'hide') {
-                    // Hide elements outside the range, show otherwise
-                    if (outOfRange) {
-                        video.classList.add(CLASS_JS_HIDE_LENGTH);
-                    } else {
-                        video.classList.remove(CLASS_JS_HIDE_LENGTH);
-                    }
-
-                    video.classList.remove(CLASS_JS_FADE_LENGTH);
-                } else {
-                    // Default to fade behavior
-                    if (outOfRange) {
-                        video.classList.add(CLASS_JS_FADE_LENGTH);
-                    } else {
-                        video.classList.remove(CLASS_JS_FADE_LENGTH);
-                    }
-
-                    video.classList.remove(CLASS_JS_HIDE_LENGTH);
-                }
-            });
-        };
-
-        // Apply video views filter (fade or hide) based on settings
-        const parseViewCountText = (text) => {
-            if (!text) return null;
-
-            const VIEW_COUNT_MULTIPLIER = {
-                k: 1e3,
-                m: 1e6,
-                b: 1e9,
-            };
-
-            // Normalize the text by removing whitespace and converting to lowercase
-            const normalized = text.replaceAll(/\s+/g, '').toLowerCase();
-            // Match the numeric part and the optional suffix (k, m, b)
-            const match = normalized.match(/(\d+(?:[.,]\d+)?)([kmb])?/);
-
-            if (!match) return null;
-
-            const rawNumber = match[1]; // Extract the numeric part (e.g., "1.2" or "12,3")
-            const suffix = match[2] || ''; // Extract the suffix (e.g., "k", "m", "b") or default to empty string
-
-            // If both separators exist, treat commas as thousands separators.
-            // Otherwise treat comma as decimal separator for locale formats like 1,2M.
-            const numericText =
-                rawNumber.includes('.') && rawNumber.includes(',')
-                    ? rawNumber.replaceAll(',', '')
-                    : rawNumber.replace(',', '.');
-
-            const value = Number(numericText);
-
-            if (Number.isNaN(value)) return null;
-
-            return value * (VIEW_COUNT_MULTIPLIER[suffix] || 1);
-        };
-
-        const extractViewCount = (videoElement) => {
-            const candidates = new Set();
-
-            // Text would have channel name, view, delimiter, publish time.
-            videoElement.querySelectorAll(SELECTOR_VIDEO_METADATA).forEach((metadataElement) => {
-                const metadataText = metadataElement.textContent ? metadataElement.textContent.trim() : '';
-
-                if (!metadataText || !/\d/.test(metadataText)) return;
-
-                candidates.add(metadataText);
-            });
-
-            // If there is 1 candidate, we assume there is no view count (e.g., live videos, premieres, or unknown metadata format) and return 0 to avoid stale class states.
-            if (candidates.size <= 1) {
-                return 0;
-            }
-
-            // If there are multiple candidates, we parse the view count from the first option.
-            return parseViewCountText([...candidates][0]);
-        };
-
-        const applyVideoViewsFilter = () => {
-            if (!doFilterByViews) return;
-
-            // Select all video elements on the YouTube page
-            const videoElements = document.querySelectorAll(SELECTOR_VIDEO_ITEM);
-
-            videoElements.forEach((video) => {
-                const viewCount = extractViewCount(video);
-
-                if (!viewCount) return;
-
-                const outOfRange = viewCount < videoViewsMin || viewCount > videoViewsMax;
-
-                // Logic to either hide or fade the video based on the mode
-                if (videoViewsMode === 'hide') {
-                    if (outOfRange) {
-                        video.classList.add(CLASS_JS_HIDE_VIEWS);
-                    } else {
-                        video.classList.remove(CLASS_JS_HIDE_VIEWS);
-                    }
-                    video.classList.remove(CLASS_JS_FADE_VIEWS);
-                } else {
-                    if (outOfRange) {
-                        video.classList.add(CLASS_JS_FADE_VIEWS);
-                    } else {
-                        video.classList.remove(CLASS_JS_FADE_VIEWS);
-                    }
-                    video.classList.remove(CLASS_JS_HIDE_VIEWS);
-                }
-            });
-        };
-
-        /**
-         * Run
-         */
-
-        const runOnce = () => {
-            hideWatchedVideos();
-            hideShortsSections();
-            hideExpandableSections();
-            applyVideoLengthFilter();
-            applyVideoViewsFilter();
-        };
-
-        // Run once at startup
-        runOnce();
-
-        // Debounce helper
-        const debounce = (fn, wait = 300) => {
-            let t = null;
-            return (...args) => {
-                if (t) clearTimeout(t);
-                t = setTimeout(() => fn(...args), wait);
-            };
-        };
-
-        // Observe the document body and run the appropriate renderers when the DOM changes
-        const onMutations = debounce(() => {
-            runOnce();
-        }, 350);
-
-        const observer = new MutationObserver(onMutations);
-        observer.observe(document.body, { childList: true, subtree: true });
+function getVideoMinutes(video) {
+    const timeElement = video.querySelector(SELECTOR_VIDEO_DURATION);
+    if (!timeElement) {
+        return null;
     }
-);
+
+    const timeParts = timeElement.textContent.trim().split(':').map(Number);
+    if (timeParts.some(Number.isNaN)) {
+        return null;
+    }
+    if (timeParts.length === 2) {
+        return timeParts[0] + timeParts[1] / 60;
+    }
+    if (timeParts.length === 3) {
+        return timeParts[0] * 60 + timeParts[1] + timeParts[2] / 60;
+    }
+    return null;
+}
+
+function applyRangeState(element, outOfRange, mode, fadeClass, hideClass) {
+    element.classList.toggle(fadeClass, outOfRange && mode !== 'hide');
+    element.classList.toggle(hideClass, outOfRange && mode === 'hide');
+}
+
+function applyVideoLengthFilter() {
+    getVideoElements().forEach((video) => {
+        if (!currentSettings.doFadeByLength) {
+            video.classList.remove(CLASS_JS_FADE_LENGTH, CLASS_JS_HIDE_LENGTH);
+            return;
+        }
+
+        const videoMinutes = getVideoMinutes(video);
+        if (videoMinutes === null) {
+            video.classList.remove(CLASS_JS_FADE_LENGTH, CLASS_JS_HIDE_LENGTH);
+            return;
+        }
+
+        const outOfRange =
+            videoMinutes < currentSettings.videoLengthMin || videoMinutes > currentSettings.videoLengthMax;
+        applyRangeState(video, outOfRange, currentSettings.videoLengthMode, CLASS_JS_FADE_LENGTH, CLASS_JS_HIDE_LENGTH);
+    });
+}
+
+function parseViewCountText(text) {
+    if (!text) {
+        return null;
+    }
+
+    const multipliers = { k: 1e3, m: 1e6, b: 1e9 };
+    const match = text
+        .replaceAll(/\s+/g, '')
+        .toLowerCase()
+        .match(/(\d+(?:[.,]\d+)?)([kmb])?/);
+    if (!match) {
+        return null;
+    }
+
+    const rawNumber = match[1];
+    const numericText =
+        rawNumber.includes('.') && rawNumber.includes(',')
+            ? rawNumber.replaceAll(',', '')
+            : rawNumber.replace(',', '.');
+    const value = Number(numericText);
+    return Number.isNaN(value) ? null : value * (multipliers[match[2] || ''] || 1);
+}
+
+function extractViewCount(video) {
+    const candidates = new Set();
+    video.querySelectorAll(SELECTOR_VIDEO_METADATA).forEach((metadataElement) => {
+        const metadataText = metadataElement.textContent?.trim() || '';
+        if (metadataText && /\d/.test(metadataText)) {
+            candidates.add(metadataText);
+        }
+    });
+
+    return candidates.size > 1 ? parseViewCountText([...candidates][0]) : null;
+}
+
+function applyVideoViewsFilter() {
+    getVideoElements().forEach((video) => {
+        if (!currentSettings.doFilterByViews) {
+            video.classList.remove(CLASS_JS_FADE_VIEWS, CLASS_JS_HIDE_VIEWS);
+            return;
+        }
+
+        const viewCount = extractViewCount(video);
+        if (viewCount === null) {
+            video.classList.remove(CLASS_JS_FADE_VIEWS, CLASS_JS_HIDE_VIEWS);
+            return;
+        }
+
+        const outOfRange = viewCount < currentSettings.videoViewsMin || viewCount > currentSettings.videoViewsMax;
+        applyRangeState(video, outOfRange, currentSettings.videoViewsMode, CLASS_JS_FADE_VIEWS, CLASS_JS_HIDE_VIEWS);
+    });
+}
+
+function render() {
+    hideWatchedVideos();
+    hideShortsSections();
+    hideExpandableSections();
+    applyVideoLengthFilter();
+    applyVideoViewsFilter();
+}
+
+function scheduleRender() {
+    window.clearTimeout(renderTimeoutId);
+    renderTimeoutId = window.setTimeout(render, 350);
+}
+
+function loadSettings(callback = render) {
+    chrome.storage.sync.get(SETTINGS_KEYS, (stored) => {
+        currentSettings = { ...DEFAULT_SETTINGS, ...stored };
+        callback();
+    });
+}
+
+new MutationObserver(scheduleRender).observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+});
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName === 'sync' && SETTINGS_KEYS.some((key) => changes[key])) {
+        loadSettings();
+    }
+});
+
+loadSettings();
